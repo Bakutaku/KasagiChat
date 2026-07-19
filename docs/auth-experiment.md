@@ -79,7 +79,7 @@ docker compose logs -f backend   # 起動ログを見る場合
 ④ GitHub: /api/login/oauth2/code/github?code=xxx&state=yyy へリダイレクト
 ⑤ Spring: stateを検証 → code をアクセストークンに交換(サーバ間通信)
           → GitHub APIでユーザー情報取得 → usersテーブルへupsert
-          → セッション確立(Set-Cookie: JSESSIONID) → 「/」へリダイレクト
+          → セッション確立(Set-Cookie: SESSION) → 「/」へリダイレクト
 ⑥ 以降のAPI呼び出しはセッションCookieで認証される
 ```
 
@@ -87,7 +87,7 @@ docker compose logs -f backend   # 起動ログを見る場合
 
 - **アクセストークンもclient secretもブラウザには一切渡らない**(すべてサーバ内)
 - `state` パラメータの生成・検証は Spring Security が自動でやる(認可コード横取り対策)
-- ブラウザが持つのは HttpOnly の `JSESSIONID` だけ
+- ブラウザが持つのは HttpOnly の `SESSION` Cookieだけ
 
 ## 4. セキュリティ設計の解説(なぜこうしたか)
 
@@ -96,6 +96,9 @@ docker compose logs -f backend   # 起動ログを見る場合
 - サーバ側にセッション状態を持つ方式。**即時失効できる**(ログアウト=サーバ側で破棄)
 - JWTをlocalStorageに置く方式はXSSでトークンを盗まれるリスクがあり、失効も難しい
 - サーバが1台(App Runner想定)なのでセッション共有の問題もない
+- **セッションは Spring Session JDBC でPostgreSQLに保存**(`spring_session` テーブル)。
+  寿命は最終操作から14日・Cookieも14日の永続Cookie。「毎日使うアプリで毎回ログインさせない」ための設計で、
+  バックエンド再起動や本番のデプロイでもユーザーはログアウトされない
 
 ### Cookie属性
 
@@ -139,8 +142,7 @@ docker compose logs -f backend   # 起動ログを見る場合
 
 | 項目 | 実験での状態 | 本実装 |
 |---|---|---|
-| DBスキーマ | `ddl-auto: update`(JPAが自動生成) | Flyway等でマイグレーション管理 |
-| セッション保存先 | アプリのメモリ内(再起動で消える) | 必要なら Spring Session JDBC |
+| DBスキーマ | `ddl-auto: update`(JPAが自動生成)+ spring_sessionテーブル自動作成 | Flyway等でマイグレーション管理 |
 | 利用規約同意 | `terms_agreed_at` カラムだけ用意 | 初回フロー(規約同意→キー設定)を実装 |
 | Cookie Secure属性 | なし(HTTP) | HTTPS前提で `secure: true` |
 | テスト | 未整備(雛形のみ) | SecurityFilterChainのテストを書く |
