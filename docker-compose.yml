@@ -34,6 +34,7 @@ services:
       DB_USERNAME: kasagichat
       DB_PASSWORD: kasagichat
       APP_PUBLIC_URL: http://localhost:3000
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me-0123456789abcdef}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-dummy-client-id}
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-dummy-client-secret}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-dummy-client-id}

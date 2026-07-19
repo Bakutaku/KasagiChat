@@ -145,7 +145,11 @@ docker compose logs -f backend   # 起動ログを見る場合
 | Cookie Secure属性 | なし(HTTP) | HTTPS前提で `secure: true` |
 | テスト | 未整備(雛形のみ) | SecurityFilterChainのテストを書く |
 
-## 6. 次のステップ候補(このブランチで続ける場合)
+## 6. 追加実験: JWT認証
+
+セッション認証と併用する形でJWT+リフレッシュトークン認証も実装した → [jwt-experiment.md](jwt-experiment.md)
+
+## 7. 次のステップ候補(このブランチで続ける場合)
 
 1. 利用規約同意フロー(`POST /api/me/agree-terms` + 未同意ユーザーの制限)
 2. APIキーの暗号化保存(AES-GCM + 環境変数の暗号化鍵。requirements 3-8)
