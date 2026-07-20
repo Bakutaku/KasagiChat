@@ -1,0 +1,7 @@
+# secrets
+.env
+
+# logs
+*.log
+
+frontend
