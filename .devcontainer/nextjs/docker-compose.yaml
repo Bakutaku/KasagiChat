@@ -1,0 +1,54 @@
+services:
+  frontend:
+    image: mcr.microsoft.com/devcontainers/typescript-node:4-24-trixie
+    command: sleep infinity
+    working_dir: /workspaces/KasagiChat
+    environment:
+      API_PROXY_ORIGIN: http://backend:8080
+    volumes:
+      - ../..:/workspaces/KasagiChat
+      - node-modules:/workspaces/KasagiChat/node_modules
+
+  backend:
+    image: mcr.microsoft.com/devcontainers/java:1-21-bookworm
+    init: true
+    command: ["sh", "./gradlew", "bootRun", "--no-daemon"]
+    working_dir: /workspaces/KasagiChat-Background
+    env_file:
+      - ../../.env
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/kasagichat
+      DB_USERNAME: kasagichat
+      DB_PASSWORD: kasagichat
+      APP_PUBLIC_URL: http://localhost:3000
+    volumes:
+      - ${BACKEND_SOURCE_PATH:-../../../KasagiChat-Background}:/workspaces/KasagiChat-Background
+      - gradle-cache:/root/.gradle
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8080:8080"
+
+  db:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: kasagichat
+      POSTGRES_USER: kasagichat
+      POSTGRES_PASSWORD: kasagichat
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kasagichat -d kasagichat"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  node-modules:
+    name: kasagichat-node-modules
+  gradle-cache:
+    name: kasagichat-gradle-cache
+  postgres-data:
+    name: kasagichat-postgres-data

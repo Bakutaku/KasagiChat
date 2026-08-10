@@ -1,0 +1,15 @@
+{
+	"name": "KasagiChat - Full Stack",
+	"dockerComposeFile": "docker-compose.yaml",
+	"service": "frontend",
+	"runServices": ["frontend", "backend", "db"],
+	"workspaceFolder": "/workspaces/KasagiChat",
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils:2": {},
+		"ghcr.io/devcontainers/features/node:2": {}
+	},
+	"remoteUser": "node",
+	"forwardPorts": [3000,8080],
+	"postCreateCommand": "sudo chown -R node:node ${containerWorkspaceFolder}/node_modules && pnpm install --frozen-lockfile",
+	"shutdownAction": "stopCompose"
+}
