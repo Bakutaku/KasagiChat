@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+/*
+ * daisyUI v5 / Tailwind CSS v4 では、テーマを CSS から設定します。
+ * --default と --prefersdark は、data-theme が未指定のときの初期値です。
+ */
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark, cupcake, emerald, corporate,
+    night;
+}
+
+html,
+body {
+  min-height: 100%;
+}
