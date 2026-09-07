@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import KasagiLogo from "@/components/icon/KasagiLogo";
 import { ThemeSelector } from "@/components/themes/theme-selector";
+import LogoutButton from "./logout-button";
 
 const navigationItems = [
   { href: "/home", label: "ホーム" },
@@ -60,8 +61,8 @@ export function NavigationHeader() {
           ))}
         </ul>
       </nav>
-
-      <div className="navbar-end gap-2">
+      <div className="navbar-end gap-3">
+        <div><LogoutButton/></div>
         <div className="hidden sm:block">
           <ThemeSelector />
         </div>

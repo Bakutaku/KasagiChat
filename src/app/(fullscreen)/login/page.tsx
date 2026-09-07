@@ -8,12 +8,7 @@ export const metadata: Metadata = {
   description: "KasagiChatにログインして、分身との暮らしを始めましょう。",
 };
 
-type LoginPageProps = {
-  searchParams: Promise<{ error?: string | string[] }>;
-};
-
-export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const { error } = await searchParams;
+export default async function LoginPage() {
 
   return (
     <section className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-base-200 px-5 py-10 text-base-content">
@@ -41,13 +36,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               初めての方もこちらから登録できます。
             </p>
           </div>
-
-          {error && (
-            <div className="alert alert-error mt-6" role="alert">
-              <span aria-hidden="true" className="text-lg">!</span>
-              <span className="text-sm">ログインできませんでした。もう一度お試しください。</span>
-            </div>
-          )}
 
           <div className="mt-7 grid gap-3">
             {/* Google */}
