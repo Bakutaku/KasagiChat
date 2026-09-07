@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KasagiChat",
-  description: "Next.js + daisyUI theme starter",
+  title: "KasagiChat｜もうひとりの自分と、会話の橋を架けよう",
+  description:
+    "あなたを知り、いっしょに育つ分身NPCと過ごすコミュニケーション練習メタバース。",
 };
 
 export default function RootLayout({

@@ -10,6 +10,14 @@ const nextConfig: NextConfig = {
         source: "/api/:path*",
         destination: `${apiProxyOrigin}/api/:path*`,
       },
+      {
+        source: "/oauth2/:path*",
+        destination: `${apiProxyOrigin}/oauth2/:path*`,
+      },
+      {
+        source: "/login/oauth2/:path*",
+        destination: `${apiProxyOrigin}/login/oauth2/:path*`,
+      }
     ];
   },
 };

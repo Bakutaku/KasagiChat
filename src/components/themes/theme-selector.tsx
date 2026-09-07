@@ -26,10 +26,10 @@ export function ThemeSelector() {
   );
 
   return (
-    <label className="form-control w-full max-w-48">
-      <span className="label-text mb-2">テーマ</span>
+    <label className="w-full max-w-48">
+      <span className="sr-only">テーマ</span>
       <select
-        className="select select-bordered w-full"
+        className="select select-bordered select-sm w-full"
         value={mounted ? (theme ?? "system") : "system"}
         onChange={(event) => setTheme(event.target.value)}
         aria-label="テーマを選択"
