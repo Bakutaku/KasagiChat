@@ -1,5 +1,4 @@
-import Image from "next/image";
-import { ThemeSelector } from "@/components/themes/theme-selector";
+import Link from "next/link";
 
 const features = [
   {
@@ -25,10 +24,6 @@ const features = [
   },
 ];
 
-function KasagiLogo() {
-  return <Image src="/kasagi-logo.svg" alt="" width={46} height={46} />;
-}
-
 function TownPreview() {
   return (
     <div className="mockup-window w-full max-w-xl border border-base-300 bg-base-100 shadow-2xl">
@@ -42,7 +37,7 @@ function TownPreview() {
         </div>
 
         <svg
-          className="aspect-[4/3] w-full"
+          className="aspect-4/3 w-full"
           viewBox="0 0 480 360"
           role="img"
           aria-label="川と橋、カフェとオフィスがある星川の街"
@@ -120,27 +115,7 @@ function TownPreview() {
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-base-200 text-base-content" id="top">
-      <header className="navbar sticky top-0 z-50 border-b border-base-300 bg-base-100/90 px-4 backdrop-blur sm:px-8">
-        <div className="navbar-start">
-          <a className="btn btn-ghost gap-2 px-2 text-xl" href="#top" aria-label="KasagiChat トップへ">
-            <KasagiLogo />
-            <span>Kasagi<span className="text-primary">Chat</span></span>
-          </a>
-        </div>
-        <nav className="navbar-center hidden lg:flex" aria-label="メインナビゲーション">
-          <ul className="menu menu-horizontal gap-1 px-1 font-medium">
-            <li><a href="#about">KasagiChatとは</a></li>
-            <li><a href="#features">できること</a></li>
-            <li><a href="#flow">はじめかた</a></li>
-          </ul>
-        </nav>
-        <div className="navbar-end gap-2">
-          <div className="hidden sm:block"><ThemeSelector /></div>
-          <a className="btn btn-outline btn-primary btn-sm sm:btn-md" href="#login">ログイン</a>
-        </div>
-      </header>
-
+    <>
       <section className="hero min-h-[calc(100vh-65px)] bg-base-200">
         <div className="hero-content max-w-7xl flex-col gap-12 px-5 py-16 lg:flex-row lg:py-24">
           <div className="max-w-2xl flex-1 text-center lg:text-left">
@@ -156,11 +131,11 @@ export default function Home() {
               KasagiChatは、あなたを知り、いっしょに育つ分身NPCと過ごす
               コミュニケーション練習のための小さなメタバースです。
             </p>
-            <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start" id="login">
-              <a className="btn btn-primary btn-lg" href="#">
+            <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
+              <Link className="btn btn-primary btn-lg" href="/login">
                 はじめてみる
                 <span aria-hidden="true">→</span>
-              </a>
+              </Link>
               <a className="btn btn-ghost btn-lg" href="#about">世界をのぞく</a>
             </div>
             <div className="mt-9 flex items-center justify-center gap-3 lg:justify-start">
@@ -255,24 +230,12 @@ export default function Home() {
                 まずは生まれたばかりの分身と、ゆっくり話してみませんか。
               </p>
               <div className="card-actions mt-4">
-                <a className="btn btn-secondary btn-lg" href="#">KasagiChatをはじめる</a>
+                <Link className="btn btn-secondary btn-lg" href="/login">KasagiChatをはじめる</Link>
               </div>
             </div>
           </div>
         </div>
       </section>
-
-      <footer className="footer footer-horizontal border-t border-base-300 bg-base-100 p-8 text-base-content/60 sm:footer-horizontal sm:items-center">
-        <aside className="flex items-center gap-2">
-          <KasagiLogo />
-          <div><strong className="text-base text-base-content">KasagiChat</strong><p>Bridge your conversations.</p></div>
-        </aside>
-        <nav className="grid-flow-col gap-4 md:place-self-center md:justify-self-end">
-          <a className="link link-hover" href="#about">サービスについて</a>
-          <a className="link link-hover" href="#features">できること</a>
-          <span>© 2026 KasagiChat</span>
-        </nav>
-      </footer>
-    </main>
+    </>
   );
 }

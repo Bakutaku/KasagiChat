@@ -5,6 +5,7 @@ services:
     working_dir: /workspaces/KasagiChat
     environment:
       API_PROXY_ORIGIN: http://backend:8080
+      API_PUBLIC_ORIGIN: http://localhost:8080
     volumes:
       - ../..:/workspaces/KasagiChat
       - node-modules:/workspaces/KasagiChat/node_modules

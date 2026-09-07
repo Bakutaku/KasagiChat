@@ -9,5 +9,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 # Layout
 
 Use daisyUI for creating the UI.
+Use icons from `react-icons/lu` for general UI icons.
 
 <!-- END:nextjs-agent-rules -->
