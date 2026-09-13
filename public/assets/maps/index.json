@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "defaultMapId": "komorebi-lounge",
+  "maps": [
+    { "id": "komorebi-lounge", "file": "komorebi-lounge.json" },
+    { "id": "hoshikawa-town", "file": "hoshikawa-town.json" }
+  ]
+}

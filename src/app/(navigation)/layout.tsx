@@ -1,4 +1,5 @@
-import { NavigationHeader } from "@/components/layout/navigation-header";
+import { Suspense } from "react";
+import { PrototypeLayout } from "@/features/prototype/shell";
 
 export default function NavigationLayout({
   children,
@@ -6,9 +7,8 @@ export default function NavigationLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="flex min-h-screen flex-col bg-base-200 text-base-content">
-      <NavigationHeader />
-      <main className="flex-1">{children}</main>
-    </div>
+    <Suspense fallback={<div className="p-8">画面を準備しています…</div>}>
+      <PrototypeLayout>{children}</PrototypeLayout>
+    </Suspense>
   );
 }
