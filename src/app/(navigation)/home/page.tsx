@@ -1,1 +1,5 @@
-export { PrototypeScreens as default } from "@/features/prototype/screens";
+
+
+export default function HomePage() {
+  return (<>Hello World</>)
+}

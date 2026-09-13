@@ -49,5 +49,3 @@ next-env.d.ts
 /.devcontainer/local*
 
 .vscode
-
-.claude
