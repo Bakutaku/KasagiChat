@@ -24,7 +24,7 @@ export default async function LoginPage() {
             aria-label="KasagiChat トップへ戻る"
           >
             <KasagiLogo width={50} height={50} />
-            <span>Kasagi<span className="text-primary">Chat</span></span>
+            <span>Kasagi<span className="text-emerald-300">Chat</span></span>
           </Link>
 
           <div className="mt-7 text-center">

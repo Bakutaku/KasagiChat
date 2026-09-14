@@ -44,7 +44,7 @@ export function NavigationHeader() {
         >
           <KasagiLogo width={40} height={40} />
           <span className="hidden sm:inline">
-            Kasagi<span className="text-primary">Chat</span>
+            Kasagi<span className="text-emerald-300">Chat</span>
           </span>
         </Link>
       </div>

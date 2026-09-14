@@ -1,0 +1,195 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">KasagiChat システム構成図</title>
+  <desc id="desc">利用者のブラウザからAWS Amplify Hosting上のNext.js、Elastic Beanstalk上のSpring Boot API、Supabase PostgreSQL、OAuthおよびLLMプロバイダーへの接続とGitHubからのデプロイ経路を示す。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fbff"/>
+      <stop offset="1" stop-color="#f1f5fb"/>
+    </linearGradient>
+    <linearGradient id="aws" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fffaf0"/>
+      <stop offset="1" stop-color="#fff3d6"/>
+    </linearGradient>
+    <linearGradient id="amplify" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff7ed"/>
+      <stop offset="1" stop-color="#ffedd5"/>
+    </linearGradient>
+    <linearGradient id="eb" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef6ff"/>
+      <stop offset="1" stop-color="#dbeafe"/>
+    </linearGradient>
+    <linearGradient id="data" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#effcf7"/>
+      <stop offset="1" stop-color="#d7f7e8"/>
+    </linearGradient>
+    <linearGradient id="external" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#faf5ff"/>
+      <stop offset="1" stop-color="#f1e7ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#183153" flood-opacity="0.10"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-violet" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#059669"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+    <style>
+      text { font-family: "Yu Gothic UI", "Noto Sans JP", "Meiryo", sans-serif; fill: #172033; }
+      .title { font-size: 40px; font-weight: 700; letter-spacing: 0.02em; }
+      .subtitle { font-size: 18px; fill: #596579; }
+      .group-label { font-size: 19px; font-weight: 700; fill: #8a5a00; }
+      .node-title { font-size: 22px; font-weight: 700; }
+      .node-sub { font-size: 16px; fill: #526176; }
+      .tiny { font-size: 14px; fill: #64748b; }
+      .edge-label { font-size: 15px; font-weight: 700; }
+      .pill { font-size: 14px; font-weight: 700; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <circle cx="1475" cy="85" r="170" fill="#dbeafe" opacity="0.45"/>
+  <circle cx="90" cy="920" r="220" fill="#ede9fe" opacity="0.45"/>
+
+  <text class="title" x="80" y="72">KasagiChat システム構成図</text>
+  <text class="subtitle" x="80" y="108">Next.js + Spring Boot / バックエンド: AWS Elastic Beanstalk</text>
+  <rect x="80" y="132" width="1440" height="2" rx="1" fill="#d4deeb"/>
+
+  <!-- User -->
+  <g filter="url(#shadow)">
+    <rect x="70" y="342" width="250" height="210" rx="24" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  </g>
+  <rect x="92" y="365" width="58" height="58" rx="16" fill="#e0f2fe"/>
+  <rect x="106" y="377" width="30" height="21" rx="3" fill="none" stroke="#0369a1" stroke-width="3"/>
+  <path d="M101 404h40M112 398v6M130 398v6" stroke="#0369a1" stroke-width="3" stroke-linecap="round"/>
+  <text class="node-title" x="166" y="392">利用者</text>
+  <text class="node-sub" x="166" y="419">PC / スマートフォン</text>
+  <line x1="92" y1="444" x2="298" y2="444" stroke="#e2e8f0"/>
+  <text class="node-sub" x="92" y="477">Webブラウザ</text>
+  <text class="tiny" x="92" y="504">HTTPS・セッションCookie</text>
+  <text class="tiny" x="92" y="528">画面表示 / API操作 / OAuth</text>
+
+  <!-- AWS boundary -->
+  <rect x="390" y="160" width="780" height="630" rx="32" fill="url(#aws)" stroke="#e8b34a" stroke-width="2.5" stroke-dasharray="10 8"/>
+  <rect x="418" y="181" width="110" height="34" rx="17" fill="#f59e0b"/>
+  <text x="473" y="204" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">AWS</text>
+  <text class="group-label" x="548" y="204">アプリケーション実行基盤</text>
+
+  <!-- Amplify -->
+  <g filter="url(#shadow)">
+    <rect x="445" y="258" width="320" height="250" rx="24" fill="url(#amplify)" stroke="#f2a53b" stroke-width="2"/>
+  </g>
+  <rect x="468" y="282" width="60" height="60" rx="18" fill="#fb923c"/>
+  <path d="M482 327l16-31 16 31M488 317h20" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text class="node-title" x="548" y="308">AWS Amplify Hosting</text>
+  <text class="node-sub" x="548" y="334">フロントエンド</text>
+  <rect x="470" y="368" width="270" height="50" rx="12" fill="#ffffff" opacity="0.92"/>
+  <text x="491" y="399" font-size="18" font-weight="700">Next.js 16 / React 19</text>
+  <text class="tiny" x="470" y="448">UI・2Dマップ・チャット画面</text>
+  <text class="tiny" x="470" y="475">/api・/oauth2 をバックエンドへ中継</text>
+
+  <!-- Elastic Beanstalk -->
+  <g filter="url(#shadow)">
+    <rect x="820" y="258" width="300" height="400" rx="24" fill="url(#eb)" stroke="#4f8fe8" stroke-width="2.5"/>
+  </g>
+  <rect x="844" y="282" width="60" height="60" rx="18" fill="#2563eb"/>
+  <path d="M858 311h32M858 321h32M864 301h20M864 331h20" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+  <text class="node-title" x="924" y="306">Elastic Beanstalk</text>
+  <text class="node-sub" x="924" y="333">単一インスタンス環境</text>
+  <rect x="845" y="368" width="250" height="73" rx="14" fill="#ffffff" opacity="0.94"/>
+  <text x="970" y="397" text-anchor="middle" font-size="18" font-weight="700">Spring Boot API</text>
+  <text class="tiny" x="970" y="422" text-anchor="middle">Java / REST API</text>
+  <rect x="845" y="459" width="250" height="73" rx="14" fill="#ffffff" opacity="0.94"/>
+  <text x="970" y="488" text-anchor="middle" font-size="18" font-weight="700">Spring Security</text>
+  <text class="tiny" x="970" y="513" text-anchor="middle">OAuth2 / セッション / CSRF</text>
+  <rect x="845" y="550" width="250" height="73" rx="14" fill="#ffffff" opacity="0.94"/>
+  <text x="970" y="579" text-anchor="middle" font-size="18" font-weight="700">業務ロジック</text>
+  <text class="tiny" x="970" y="604" text-anchor="middle">会話・NPC・イベント・BYOK</text>
+  <text class="tiny" x="970" y="642" text-anchor="middle">単一EC2・ヘルスチェック（ALBなし）</text>
+
+  <!-- Same origin route -->
+  <path d="M320 410 C355 410, 405 365, 445 365" fill="none" stroke="#2563eb" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <rect x="322" y="330" width="130" height="52" rx="12" fill="#ffffff" stroke="#bfdbfe"/>
+  <text class="edge-label" x="387" y="351" text-anchor="middle" fill="#1d4ed8">HTTPS</text>
+  <text class="tiny" x="387" y="371" text-anchor="middle">同一オリジン</text>
+
+  <path d="M765 394 L820 394" fill="none" stroke="#2563eb" stroke-width="3.5" marker-end="url(#arrow-blue)"/>
+  <path d="M820 416 L765 416" fill="none" stroke="#2563eb" stroke-width="3" stroke-dasharray="6 5" marker-end="url(#arrow-blue)"/>
+  <rect x="758" y="342" width="69" height="34" rx="10" fill="#eff6ff"/>
+  <text class="pill" x="792" y="364" text-anchor="middle" fill="#1d4ed8">実行時</text>
+  <text class="tiny" x="792" y="447" text-anchor="middle">REST API</text>
+  <text class="tiny" x="792" y="467" text-anchor="middle">要求 / 応答</text>
+
+  <!-- Database -->
+  <text x="160" y="805" font-size="18" font-weight="700" fill="#475569">CI/CD（GitHub起点の独立した2系統）</text>
+  <g filter="url(#shadow)">
+    <rect x="1240" y="190" width="285" height="205" rx="24" fill="url(#data)" stroke="#2fb985" stroke-width="2"/>
+  </g>
+  <ellipse cx="1290" cy="239" rx="29" ry="12" fill="#10b981"/>
+  <path d="M1261 239v34c0 7 13 12 29 12s29-5 29-12v-34M1261 256c0 7 13 12 29 12s29-5 29-12" fill="none" stroke="#047857" stroke-width="3"/>
+  <text class="node-title" x="1338" y="242">Supabase</text>
+  <text class="node-sub" x="1338" y="269">PostgreSQL</text>
+  <line x1="1265" y1="307" x2="1500" y2="307" stroke="#b7e8d3"/>
+  <text class="tiny" x="1265" y="337">JDBC（セッションプーラー）</text>
+  <text class="tiny" x="1265" y="363">業務データ・会話ログ・セッション</text>
+  <path d="M1120 348 C1170 348, 1185 292, 1240 292" fill="none" stroke="#059669" stroke-width="4" marker-end="url(#arrow-green)"/>
+  <text class="edge-label" x="1178" y="318" text-anchor="middle" fill="#047857">JDBC / TLS</text>
+
+  <!-- OAuth -->
+  <g filter="url(#shadow)">
+    <rect x="1240" y="440" width="285" height="165" rx="24" fill="url(#external)" stroke="#9b6bdc" stroke-width="2"/>
+  </g>
+  <circle cx="1290" cy="491" r="29" fill="#8b5cf6"/>
+  <path d="M1277 497c4-13 22-13 26 0M1290 486a8 8 0 1 0 0-16 8 8 0 0 0 0 16" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <text class="node-title" x="1338" y="489">OAuth 2.0</text>
+  <text class="node-sub" x="1338" y="516">Google / GitHub</text>
+  <text class="tiny" x="1265" y="557">ログイン・ユーザー識別</text>
+  <text class="tiny" x="1265" y="582">認証結果はSpring Securityで処理</text>
+  <path d="M1120 485 C1170 485, 1185 520, 1240 520" fill="none" stroke="#7c3aed" stroke-width="4" marker-end="url(#arrow-violet)"/>
+  <path d="M1240 545 C1185 545, 1170 520, 1120 520" fill="none" stroke="#7c3aed" stroke-width="3" stroke-dasharray="7 6" marker-end="url(#arrow-violet)"/>
+  <text class="edge-label" x="1178" y="483" text-anchor="middle" fill="#6d28d9">OAuth</text>
+
+  <!-- LLM -->
+  <g filter="url(#shadow)">
+    <rect x="1240" y="650" width="285" height="175" rx="24" fill="url(#external)" stroke="#9b6bdc" stroke-width="2"/>
+  </g>
+  <rect x="1261" y="675" width="58" height="58" rx="18" fill="#8b5cf6"/>
+  <path d="M1277 716l13-28 13 28M1281 707h18" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text class="node-title" x="1338" y="700">LLM API</text>
+  <text class="node-sub" x="1338" y="727">OpenAI / Anthropic</text>
+  <text class="tiny" x="1265" y="768">BYOK + デモキー</text>
+  <text class="tiny" x="1265" y="793">OpenAI互換エンドポイント対応</text>
+  <path d="M1120 585 C1180 585, 1180 738, 1240 738" fill="none" stroke="#7c3aed" stroke-width="4" marker-end="url(#arrow-violet)"/>
+  <text class="edge-label" x="1176" y="681" text-anchor="middle" fill="#6d28d9">HTTPS</text>
+
+  <!-- CI/CD -->
+  <g filter="url(#shadow)">
+    <rect x="160" y="820" width="1280" height="140" rx="24" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  </g>
+  <circle cx="215" cy="890" r="28" fill="#1f2937"/>
+  <path d="M203 894c0-9 5-17 12-17s12 8 12 17M209 902h12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <text class="node-title" x="260" y="882">GitHub</text>
+  <text class="tiny" x="260" y="909">ソースコード / push</text>
+  <path d="M390 882 C460 882, 475 853, 555 853" fill="none" stroke="#64748b" stroke-width="3" marker-end="url(#arrow-gray)"/>
+  <text class="edge-label" x="470" y="850" text-anchor="middle" fill="#475569">自動ビルド</text>
+  <rect x="570" y="828" width="300" height="50" rx="14" fill="#fff7ed" stroke="#fdba74"/>
+  <text x="720" y="859" text-anchor="middle" font-size="17" font-weight="700">Amplify Hosting</text>
+  <path d="M390 898 C460 898, 475 927, 555 927" fill="none" stroke="#64748b" stroke-width="3" marker-end="url(#arrow-gray)"/>
+  <text class="edge-label" x="470" y="937" text-anchor="middle" fill="#475569">GitHub Actions</text>
+  <rect x="570" y="902" width="400" height="50" rx="14" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="770" y="923" text-anchor="middle" font-size="17" font-weight="700">Elastic Beanstalk</text>
+  <text class="tiny" x="770" y="944" text-anchor="middle">単一インスタンスへデプロイ</text>
+  <text class="tiny" x="1015" y="850">フロントエンド</text>
+  <text class="tiny" x="1015" y="876">Next.jsをビルド・配信</text>
+  <text class="tiny" x="1015" y="924">バックエンド</text>
+  <text class="tiny" x="1015" y="950">Spring Bootをデプロイ</text>
+
+  <text class="tiny" x="80" y="982">※ 中央の青い往復矢印はデプロイではなく、Next.js rewritesによる実行時のAPI通信。</text>
+</svg>

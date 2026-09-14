@@ -73,7 +73,7 @@ NPC誕生（初会話 = 会話式の性格診断）
 | バックエンド | Spring Boot（Java） |
 | DB | PostgreSQL（Supabase） |
 | AI連携 | OpenAI / Anthropic API（BYOK + デモキー）、OpenAI互換エンドポイント対応 |
-| インフラ | AWS（Amplify Hosting + App Runner）+ GitHub Actions |
+| インフラ | AWS（Amplify Hosting + Elastic Beanstalk）+ GitHub Actions |
 
 ```
 ブラウザ ── Next.js（UI専任: PixiJSマップ + チャットUI）
@@ -86,7 +86,9 @@ NPC誕生（初会話 = 会話式の性格診断）
 
 - **ロジックはSpring Bootに一元化**: Next.jsにAPI Routes / BFF層は作らず「画面を描く係」に徹する。APIキー・会話状態・認証の真実をサーバ1箇所に保つ
 - **認証**: Spring Security OAuth2 Client + セッションCookie。フロントとAPIを同一オリジン配下に置き、CORS・Cookie属性の問題を構成レベルで排除
-- **デプロイ**: GitHub push → Amplify（フロント自動ビルド）/ GitHub Actions → ECR → App Runner（バックエンド）の2系統CI/CD
+- **デプロイ**: GitHub push → Amplify（フロント自動ビルド）/ GitHub Actions → Elastic Beanstalk（バックエンド）の2系統CI/CD
+
+![KasagiChat システム構成図](docs/system-architecture.png)
 
 ## 設計上のこだわり
 
@@ -137,6 +139,8 @@ LLMは得意なこと（会話・要約・分類）にだけ使い、確定的�
 |---|---|
 | [idea.md](idea.md) | 企画書。コンセプト・世界観・NPC成長の仕組み・イベント機能・ゲームデザインの設計判断を理由付きで記録 |
 | [requirements.md](requirements.md) | 要件定義。機能スコープ（MoSCoW）・画面遷移・機能要件詳細・データモデル・API設計方針・非機能要件 |
+| [機能別処理フロー（HTML）](docs/feature-flows.html) | 画面・Spring・DB・AIの処理図。実装状況、失敗時の動き、API対応、変更候補を機能別に確認（ブラウザで開く） |
+| [フロー資料の更新方法](docs/flows/README.md) | 確認したブランチ・資料の編集元・再生成方法 |
 
 ## クレジット
 

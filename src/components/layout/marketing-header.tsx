@@ -14,7 +14,7 @@ export function MarketingHeader() {
         >
           <KasagiLogo />
           <span>
-            Kasagi<span className="text-primary">Chat</span>
+            Kasagi<span className="text-teal-500">Chat</span>
           </span>
         </Link>
       </div>
