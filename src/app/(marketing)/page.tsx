@@ -1,240 +1,235 @@
+import Image from "next/image";
 import Link from "next/link";
+import {
+  LuArrowDown,
+  LuArrowRight,
+  LuCoffee,
+  LuHeartHandshake,
+  LuMessageCircle,
+  LuSparkles,
+  LuSprout,
+} from "react-icons/lu";
+import { TownPreview } from "@/components/marketing/town-preview";
+import styles from "@/components/marketing/landing.module.css";
 
 const features = [
   {
-    icon: "✦",
-    title: "話して、生まれる",
+    icon: LuSprout,
+    title: "あなたを知る、もうひとりの自分。",
     description:
-      "最初の会話から、あなたらしい性格や好きなことを少しずつ覚えます。",
-    color: "primary",
+      "好きなこと、今日の出来事。何気ない言葉からあなたらしさを知って、分身が少しずつ育っていきます。",
+    image: "home",
+    label: "分身と育つ",
+    example: "話したことが、思い出になっていく。",
   },
   {
-    icon: "⌁",
-    title: "街で、練習する",
+    icon: LuCoffee,
+    title: "小さな街で、会話のリハーサル。",
     description:
-      "カフェの雑談から面接まで。小さな街を歩いて自然に会話を練習できます。",
-    color: "secondary",
+      "カフェでの雑談、初対面のあいさつ、面接。練習したい場面を選んで、自分のペースで話してみましょう。",
+    image: "cafe",
+    label: "街で練習する",
+    example: "今日はカフェで、気軽なおしゃべり。",
   },
   {
-    icon: "◌",
-    title: "つながりを、見つける",
+    icon: LuHeartHandshake,
+    title: "共通点から、最初のひとことへ。",
     description:
-      "分身同士が共通点を見つけ、誰かに話しかける最初の一歩をつくります。",
-    color: "accent",
+      "イベントでは、参加者との共通点や話題を会話カードで発見。誰かに話しかけるきっかけを届けます。",
+    image: "lobby",
+    label: "人とつながる",
+    example: "「私も好きです」が、会話の入り口に。",
   },
 ];
-
-function TownPreview() {
-  return (
-    <div className="mockup-window w-full max-w-xl border border-base-300 bg-base-100 shadow-2xl">
-      <div className="border-t border-base-300 bg-base-200">
-        <div className="flex items-center justify-between px-5 py-3 text-xs font-semibold text-base-content/60">
-          <span className="flex items-center gap-2">
-            <span className="status status-success" />
-            星川の街
-          </span>
-          <span>18:42</span>
-        </div>
-
-        <svg
-          className="aspect-4/3 w-full"
-          viewBox="0 0 480 360"
-          role="img"
-          aria-label="川と橋、カフェとオフィスがある星川の街"
-        >
-          <rect width="480" height="360" fill="var(--color-base-200)" />
-          <rect width="480" height="150" fill="var(--color-info)" opacity=".35" />
-          <g fill="var(--color-base-100)" opacity=".8">
-            <path d="M44 68h73c-3-15-14-24-27-20-5-23-42-18-43 8-13-1-20 5-23 12h20Z" />
-            <path d="M336 48h72c-4-12-13-18-24-15-8-19-36-12-38 9-10-1-17 1-20 6h10Z" />
-          </g>
-          <g stroke="var(--color-base-content)" strokeWidth="4">
-            <path fill="var(--color-warning)" d="M27 58h126v116H27z" />
-            <path fill="var(--color-accent)" d="M325 48h128v126H325z" />
-            <path fill="var(--color-base-100)" d="M46 42h73v24H46z" />
-            <path fill="var(--color-base-100)" d="M348 32h82v24h-82z" />
-            <path fill="var(--color-info)" d="M43 115h49v43H43z" />
-            <path fill="var(--color-base-100)" d="M111 108h27v66h-27z" />
-            <path fill="var(--color-info)" d="M344 76h90v48h-90zM374 132h31v42h-31z" />
-          </g>
-          <g fill="var(--color-base-content)" fontSize="11" fontWeight="800">
-            <text x="61" y="58">CAFE</text>
-            <text x="365" y="49">OFFICE</text>
-          </g>
-          <path
-            d="M-20 181C119 157 315 220 500 181v92C309 311 126 244-20 277Z"
-            fill="var(--color-info)"
-            opacity=".75"
-          />
-          <g transform="translate(218 164) rotate(4)" stroke="var(--color-neutral)" strokeWidth="3">
-            <rect width="61" height="125" fill="var(--color-neutral)" />
-            <path d="M8 5h45v21H8zM8 29h45v21H8zM8 53h45v21H8zM8 77h45v21H8zM8 101h45v19H8z" fill="var(--color-warning)" />
-          </g>
-          <g stroke="var(--color-success)" strokeWidth="5">
-            <circle cx="70" cy="292" r="34" fill="var(--color-success)" />
-            <path d="M70 318v34" stroke="var(--color-warning)" strokeWidth="10" />
-            <circle cx="407" cy="306" r="27" fill="var(--color-success)" />
-            <path d="M407 328v25" stroke="var(--color-warning)" strokeWidth="9" />
-          </g>
-          <g>
-            <path d="M204 308h22v31h-22z" fill="var(--color-secondary)" stroke="var(--color-neutral)" strokeWidth="4" />
-            <circle cx="215" cy="299" r="12" fill="var(--color-warning)" stroke="var(--color-neutral)" strokeWidth="5" />
-            <path d="M206 291q9-13 19 0" stroke="var(--color-neutral)" strokeWidth="8" />
-            <path d="M237 330q17-26 31 0h-31Z" fill="var(--color-neutral)" />
-            <circle cx="259" cy="316" r="10" fill="var(--color-neutral)" />
-            <path d="m242 327-14 24 25-15" fill="var(--color-neutral)" />
-          </g>
-          <g transform="translate(164 249)">
-            <path d="M9 0h105a9 9 0 0 1 9 9v22a9 9 0 0 1-9 9H9a9 9 0 0 1-9-9V9a9 9 0 0 1 9-9Z" fill="var(--color-base-100)" stroke="var(--color-base-content)" strokeWidth="3" />
-            <text x="16" y="25" fill="var(--color-base-content)" fontSize="11" fontWeight="700">今日はどこへ行く？</text>
-          </g>
-        </svg>
-        
-        <div className="stats stats-horizontal w-full rounded-none border-t border-base-300 bg-base-100 shadow-none">
-          <div className="stat px-4 py-3">
-            <div className="stat-figure">
-              <div className="avatar placeholder">
-                <div className="w-10 rounded-xl bg-primary text-primary-content">
-                  <span className="text-sm font-bold">K</span>
-                </div>
-              </div>
-            </div>
-            <div className="stat-title text-xs">あなたの分身</div>
-            <div className="stat-value text-lg">Lv. 3</div>
-          </div>
-          <div className="stat px-4 py-3">
-            <div className="stat-title text-xs">次のレベルまで</div>
-            <div className="stat-value text-lg text-secondary">64%</div>
-            <progress className="progress progress-secondary w-full" value="64" max="100" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+const steps = [
+  {
+    title: "ログインして、準備する",
+    text: "Google または GitHub でログイン。利用規約を確認し、AIの利用設定を行います。",
+  },
+  {
+    title: "最初の会話で、分身と出会う",
+    text: "好きなことや普段のことを少しずつ。あなたを知る分身との暮らしが始まります。",
+  },
+  {
+    title: "街へ出かけて、話してみる",
+    text: "気になる場所で会話を練習。家に戻ったら、分身の成長や思い出を振り返れます。",
+  },
+];
+const questions = [
+  {
+    question: "会話が苦手でも大丈夫？",
+    answer:
+      "うまく話す必要はありません。短いひとことから、自分のペースで始められます。会話を採点するのではなく、話したことを分身の成長につなげる体験です。",
+  },
+  {
+    question: "どんな場面を練習できますか？",
+    answer:
+      "カフェでの雑談、ロビーでの初対面の会話、オフィスでの面接の3つの場面です。イベントでは、参加者との共通点をもとにした会話カードが、人と話すきっかけになります。",
+  },
+  {
+    question: "利用するために必要なものは？",
+    answer:
+      "基本の体験にはPCブラウザと、GoogleまたはGitHubのアカウントを使います。AIの利用にはプロバイダーの設定が必要です。ご自身のAPIキーを利用する場合は、プロバイダー側で料金が発生することがあります。",
+  },
+];
 
 export default function Home() {
   return (
     <>
-      <section className="hero min-h-[calc(100vh-65px)] bg-base-200">
-        <div className="hero-content max-w-7xl flex-col gap-12 px-5 py-16 lg:flex-row lg:py-24">
-          <div className="max-w-2xl flex-1 text-center lg:text-left">
-            <div className="badge badge-primary badge-outline mb-6 gap-2 p-4 font-semibold">
-              <span>✦</span> あなたらしさから始まる、小さな世界
-            </div>
-            <h1 className="text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-              もうひとりの自分と、
-              <br />
-              <span className="text-primary">会話の橋</span>を架けよう。
-            </h1>
-            <p className="mx-auto mt-7 max-w-xl text-base leading-8 text-base-content/70 lg:mx-0">
-              KasagiChatは、あなたを知り、いっしょに育つ分身NPCと過ごす
-              コミュニケーション練習のための小さなメタバースです。
+      <section className={styles.hero}>
+        <div className={styles.heroGrid}>
+          <div className={styles.heroCopy}>
+            <p className={styles.eyebrow}>
+              <LuSparkles aria-hidden="true" />{" "}
+              あなたらしさから始まる、小さな世界
             </p>
-            <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
-              <Link className="btn btn-primary btn-lg" href="/login">
-                はじめてみる
-                <span aria-hidden="true">→</span>
+            <h1 className={styles.title}>
+              <span>もうひとりの自分と、</span>
+              <span>
+                <em>会話の橋</em>を架けよう。
+              </span>
+            </h1>
+            <p className={styles.intro}>
+              「何を話そう」を、少しずつ「話してみよう」へ。
+              <br className="hidden sm:block" />
+              あなたと育つ分身と、小さな街で会話の練習。
+              <br className="hidden sm:block" />
+              その一歩が、誰かとのつながりになります。
+            </p>
+            <div className={styles.actions}>
+              <Link
+                className="btn btn-primary btn-lg rounded-full px-7"
+                href="/login"
+              >
+                分身に会いにいく <LuArrowRight aria-hidden="true" />
               </Link>
-              <a className="btn btn-ghost btn-lg" href="#about">世界をのぞく</a>
+              <a className="btn btn-ghost rounded-full" href="#features">
+                どんな世界？ <LuArrowDown aria-hidden="true" />
+              </a>
             </div>
-            <div className="mt-9 flex items-center justify-center gap-3 lg:justify-start">
-              <div className="avatar-group -space-x-3">
-                {["K", "H", "M"].map((name, index) => (
-                  <div className="avatar placeholder" key={name}>
-                    <div className={`w-9 rounded-full ${index === 0 ? "bg-primary text-primary-content" : index === 1 ? "bg-secondary text-secondary-content" : "bg-accent text-accent-content"}`}>
-                      <span className="text-xs font-bold">{name}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <p className="text-left text-xs text-base-content/60">
-                <strong className="block text-base-content">あなたのペースで大丈夫。</strong>
-                採点のない、やさしい会話練習です。
-              </p>
-            </div>
+            <p className={styles.reassurance}>
+              <LuMessageCircle aria-hidden="true" />{" "}
+              ひとことからで大丈夫。あなたのペースで。
+            </p>
           </div>
-          <div className="w-full flex-1">
-            <div className="mb-3 flex flex-wrap justify-center gap-2 lg:justify-end">
-              <span className="badge badge-success gap-2"><span className="status status-success" />会話から成長中</span>
-              <span className="badge badge-warning">✦ 新しい思い出</span>
-            </div>
-            <TownPreview />
-          </div>
+          <TownPreview />
         </div>
       </section>
 
-      <section className="bg-base-100 px-5 py-20 sm:py-28" id="about">
-        <div className="mx-auto max-w-6xl">
-          <div className="hero rounded-box bg-base-200">
-            <div className="hero-content flex-col gap-10 px-6 py-12 lg:flex-row lg:px-14">
-              <div className="flex-1">
-                <div className="badge badge-secondary mb-4">ABOUT</div>
-                <h2 className="text-3xl font-black leading-tight sm:text-4xl">
-                  話すほど、<br />「わたし」が見えてくる。
-                </h2>
+      <section className={styles.about} id="about">
+        <div className={styles.aboutHeading}>
+          <p className={styles.eyebrow}>大切にしていること</p>
+          <h2>
+            話すことが、
+            <br />
+            少し楽しみになる場所。
+          </h2>
+        </div>
+        <div className={styles.aboutText}>
+          <p>
+            気の利いた言葉が出てこない日も、
+            <br />
+            誰かに聞いてほしいだけの日も。
+            <br />
+            あなたの言葉を、そばで聞いてくれる分身がいます。
+          </p>
+          <p className={styles.promise}>
+            <LuSprout aria-hidden="true" />{" "}
+            育つのは、あなたの評価ではなく、あなたの分身。
+          </p>
+        </div>
+      </section>
+
+      <section className={styles.section} id="features">
+        <div className={styles.sectionHeading}>
+          <p className={styles.eyebrow}>この街でできること</p>
+          <h2>自分を知る。練習する。人とつながる。</h2>
+          <p>小さな会話を重ねながら、あなたの世界を少しずつ。</p>
+        </div>
+        <div className={styles.featureGrid}>
+          {features.map((feature, index) => (
+            <article className={`card ${styles.feature}`} key={feature.label}>
+              <div className={styles.featureArt}>
+                <span className={styles.number}>0{index + 1}</span>
+                <Image
+                  src={`/assets/map/tiles/${feature.image}.png`}
+                  alt=""
+                  width={260}
+                  height={182}
+                  sizes="(max-width: 767px) 240px, 260px"
+                  className="h-44 w-64 object-contain"
+                />
               </div>
-              <div className="max-w-xl flex-1 text-base-content/70">
-                <p className="leading-8">
-                  うまく話すための点数はつけません。あなたの言葉をそばで聞く分身が、
-                  新しい話題や思い出をひとつずつ増やしていきます。
+              <div className="card-body gap-4 p-7">
+                <p className={styles.featureLabel}>
+                  <feature.icon aria-hidden="true" />
+                  {feature.label}
                 </p>
-                <div className="alert alert-success mt-6">
-                  <span>成長するのは、あなたの評価ではなく、あなたの分身です。</span>
-                </div>
+                <h3 className="card-title text-xl leading-relaxed">
+                  {feature.title}
+                </h3>
+                <p className="text-sm leading-7 text-base-content/70">
+                  {feature.description}
+                </p>
+                <p className={styles.example}>{feature.example}</p>
               </div>
-            </div>
-          </div>
-
-          <div className="mb-10 mt-20 text-center" id="features">
-            <div className="badge badge-primary badge-outline mb-4">FEATURES</div>
-            <h2 className="text-3xl font-black sm:text-4xl">KasagiChatでできること</h2>
-          </div>
-          <div className="grid gap-5 md:grid-cols-3">
-            {features.map((feature, index) => (
-              <article className="card border border-base-300 bg-base-200 shadow-sm transition-shadow hover:shadow-xl" key={feature.title}>
-                <div className="card-body">
-                  <div className="flex items-start justify-between">
-                    <div className={`avatar placeholder text-2xl ${feature.color === "primary" ? "text-primary" : feature.color === "secondary" ? "text-secondary" : "text-accent"}`}>
-                      <div className="w-12 rounded-full bg-base-100"><span>{feature.icon}</span></div>
-                    </div>
-                    <span className="badge badge-ghost">{String(index + 1).padStart(2, "0")}</span>
-                  </div>
-                  <h3 className="card-title mt-6">{feature.title}</h3>
-                  <p className="leading-7 text-base-content/65">{feature.description}</p>
-                </div>
-              </article>
-            ))}
-          </div>
+            </article>
+          ))}
         </div>
       </section>
 
-      <section className="px-5 py-20 sm:py-28" id="flow">
-        <div className="mx-auto max-w-5xl text-center">
-          <div className="badge badge-accent badge-outline mb-4">HOW TO START</div>
-          <h2 className="text-3xl font-black sm:text-4xl">分身との暮らしをはじめよう</h2>
-          <ul className="steps steps-vertical mt-12 w-full lg:steps-horizontal">
-            <li className="step step-primary" data-content="1">ログインする</li>
-            <li className="step step-primary" data-content="2">最初の会話をする</li>
-            <li className="step step-primary" data-content="3">星川の街へ出かける</li>
-            <li className="step" data-content="✦">分身と一緒に育つ</li>
-          </ul>
-
-          <div className="card mt-20 bg-primary text-primary-content shadow-xl">
-            <div className="card-body items-center px-6 py-12 text-center">
-              <div className="badge badge-secondary">WELCOME TO HOSHIKAWA</div>
-              <h2 className="card-title mt-3 text-2xl font-black sm:text-3xl">
-                あなたの言葉から、物語がはじまります。
-              </h2>
-              <p className="max-w-xl text-primary-content/75">
-                まずは生まれたばかりの分身と、ゆっくり話してみませんか。
-              </p>
-              <div className="card-actions mt-4">
-                <Link className="btn btn-secondary btn-lg" href="/login">KasagiChatをはじめる</Link>
-              </div>
-            </div>
-          </div>
+      <section className={`${styles.section} ${styles.flow}`} id="flow">
+        <div className={styles.sectionHeading}>
+          <p className={styles.eyebrow}>はじめかた</p>
+          <h2>最初のひとことから、はじまる。</h2>
+          <p>準備ができたら、分身と一緒に星川の街へ。</p>
         </div>
+        <ol className={styles.steps}>
+          {steps.map((step, index) => (
+            <li key={step.title}>
+              <span className={styles.stepNumber}>0{index + 1}</span>
+              <h3>{step.title}</h3>
+              <p>{step.text}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className={`${styles.section} ${styles.faq}`} id="faq">
+        <div className={styles.sectionHeading}>
+          <p className={styles.eyebrow}>気になること</p>
+          <h2>はじめる前に。</h2>
+        </div>
+        <div className="space-y-3">
+          {questions.map(({ question, answer }) => (
+            <details
+              className="collapse collapse-plus border border-base-300 bg-base-100"
+              key={question}
+            >
+              <summary className="collapse-title pr-12 font-semibold">
+                {question}
+              </summary>
+              <div className="collapse-content text-sm leading-7 text-base-content/70">
+                <p>{answer}</p>
+              </div>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.invitation}>
+        <div className={styles.constellation} aria-hidden="true">
+          ✧ · ˚
+        </div>
+        <p className={styles.eyebrow}>星川の街で、待っています。</p>
+        <h2>今日は、どんなことを話そう。</h2>
+        <p>何気ないひとことが、あなたと分身の最初の思い出に。</p>
+        <Link
+          className="btn rounded-full border-0 bg-[#f4efdF] px-8 text-[#343f68] hover:bg-white"
+          href="/login"
+        >
+          分身との暮らしをはじめる <LuArrowRight aria-hidden="true" />
+        </Link>
       </section>
     </>
   );

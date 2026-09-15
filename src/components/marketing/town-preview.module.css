@@ -1,0 +1,175 @@
+.preview {
+  width: 100%;
+  max-width: 36rem;
+  margin-inline: auto;
+  overflow: hidden;
+  border: 1px solid var(--color-base-300);
+  border-radius: 2rem;
+  background: var(--color-base-100);
+  box-shadow: 0 24px 65px -30px
+    color-mix(in oklab, var(--color-base-content) 30%, transparent);
+}
+
+.scene {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  aspect-ratio: 1.08;
+  overflow: hidden;
+  color: #f3f2ff;
+  background:
+    radial-gradient(ellipse at 78% 25%, #8886b5 0, transparent 48%),
+    linear-gradient(155deg, #343f68, #697a97 65%, #8fa7a6);
+}
+
+.heading {
+  position: absolute;
+  z-index: 2;
+  top: 6%;
+  left: 6%;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.eyebrow {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+.sun {
+  position: absolute;
+  top: 15%;
+  right: 9%;
+  width: 11%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #fff9e1;
+}
+.ground {
+  position: absolute;
+  left: -15%;
+  bottom: -20%;
+  width: 140%;
+  height: 67%;
+  border-radius: 50%;
+  background: #788f8a;
+  border: 18px solid #8da4a0;
+  transform: rotate(-12deg);
+}
+.cafe {
+  position: absolute;
+  top: 23%;
+  left: 0;
+  width: 55%;
+  aspect-ratio: 1.43;
+}
+.place {
+  position: absolute;
+  top: 20%;
+  left: 10%;
+  gap: 0.4rem;
+  border: 0;
+  background: #ffffffc9;
+  color: #415b4e;
+  font-size: 10px;
+}
+.friend {
+  position: absolute;
+  bottom: 17%;
+  left: 17%;
+  width: 29%;
+  height: 44%;
+}
+.character {
+  position: absolute;
+  right: 1%;
+  bottom: 15%;
+  width: 51%;
+  height: 70%;
+  filter: drop-shadow(0 10px 8px #344e4920);
+}
+.bubble {
+  position: absolute;
+  z-index: 2;
+  bottom: 13%;
+  right: 5%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem 1rem 1rem 0.2rem;
+  background: #fffdf7;
+  color: #344e49;
+  box-shadow: 0 5px 20px #344e4910;
+  font-size: clamp(10px, 1.1vw, 13px);
+  font-weight: 700;
+}
+.reply {
+  position: absolute;
+  bottom: 4%;
+  left: 7%;
+  padding: 0.6rem 0.9rem;
+  border-radius: 1rem 1rem 0.2rem 1rem;
+  background: #426355;
+  color: #fffdf7;
+  font-size: clamp(10px, 1vw, 12px);
+}
+.caption {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1.25rem 1.5rem;
+}
+
+@media (max-width: 380px) {
+  .heading {
+    gap: 0.4rem;
+  }
+  .eyebrow {
+    font-size: 8px;
+  }
+  .caption {
+    gap: 0.6rem;
+    padding: 1rem;
+  }
+  .caption p:first-child {
+    font-size: 12px;
+  }
+  .caption p:last-child {
+    font-size: 10px;
+  }
+  .bubble {
+    padding: 0.65rem 0.75rem;
+  }
+}
+
+.milkyWay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.starlight {
+  fill: none;
+  stroke: #c0b9fa;
+  stroke-width: 83;
+  opacity: 0.45;
+  filter: blur(17px);
+}
+.starstream {
+  fill: none;
+  stroke: #e0dcff;
+  stroke-width: 35;
+  opacity: 0.36;
+  filter: blur(6px);
+}
+.starDust {
+  fill: none;
+  stroke: #fff5de;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 0.1 9;
+  opacity: 0.75;
+}
