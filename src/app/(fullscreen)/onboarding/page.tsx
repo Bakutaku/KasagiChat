@@ -1,14 +1,14 @@
 import KasagiLogo from "@/components/icon/KasagiLogo";
 import type { Metadata } from "next";
 import Link from "next/link";
-import SignupForm from "./signup-form";
+import OnboardingForm from "./onboarding-form";
 
 export const metadata: Metadata = {
-  title: "新規登録 | KasagiChat",
+  title: "初期設定 | KasagiChat",
   description: "KasagiChatに登録して、あなたの分身との暮らしを始めましょう。",
 };
 
-export default function SignupPage() {
+export default function OnboardingPage() {
   return (
     <section className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-base-200 px-5 py-10 text-base-content">
       <div aria-hidden="true" className="absolute inset-x-0 top-0 -z-10 h-1/2 bg-linear-to-b from-primary/15 to-transparent" />
@@ -27,7 +27,7 @@ export default function SignupPage() {
           </Link>
 
           <div className="mt-7 text-center">
-            <div className="badge badge-primary badge-outline mb-4">CREATE USER</div>
+            <div className="badge badge-primary badge-outline mb-4">ONBOARDING</div>
             <h1 className="text-2xl font-black sm:text-3xl">プロフィールを確認</h1>
             <p className="mt-3 text-sm leading-6 text-base-content/65">
               あと少しで登録が完了します。
@@ -36,7 +36,7 @@ export default function SignupPage() {
             </p>
           </div>
 
-          <SignupForm />
+          <OnboardingForm />
         </div>
       </section>
     </section>

@@ -5,7 +5,7 @@ type AuthState = "unauthenticated" | "pending" | "registered" | "unknown";
 
 const SESSION_COOKIE_NAME = "SESSION";
 const LOGIN_PATH = "/login";
-const SIGNUP_PATH = "/signup";
+const ONBOARDING_PATH = "/onboarding";
 const HOME_PATH = "/home";
 
 /**
@@ -70,9 +70,9 @@ export async function proxy(request: NextRequest) {
   }
 
   if (authState === "pending") {
-    return pathname === SIGNUP_PATH
+    return pathname === ONBOARDING_PATH
       ? NextResponse.next()
-      : redirectTo(request, SIGNUP_PATH);
+      : redirectTo(request, ONBOARDING_PATH);
   }
 
   if (authState === "registered") {
@@ -85,5 +85,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/signup", "/home/:path*"],
+  matcher: ["/login", "/onboarding", "/home/:path*"],
 };

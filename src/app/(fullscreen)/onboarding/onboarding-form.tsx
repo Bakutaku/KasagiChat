@@ -107,7 +107,7 @@ function formatEffectiveDate(value: string) {
   }).format(date);
 }
 
-export default function SignupForm() {
+export default function OnboardingForm() {
   const router = useRouter();
   const [profile, setProfile] = useState<PendingRegistration | null>(null);
   const [displayName, setDisplayName] = useState("");
