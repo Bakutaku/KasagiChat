@@ -28,8 +28,6 @@ export type ConversationViewProps = {
   /** 入力欄を一時的に触らせない(振り返り中など)。 */
   isInputLocked?: boolean;
   error?: string | null;
-  /** 画面上部(NPCアイコンや往復数バッジなど)。 */
-  header?: ReactNode;
   /** 入力欄の下(誕生確定パネルなど、会話種別ごとの操作)。 */
   footer?: ReactNode;
 };
@@ -45,7 +43,6 @@ export default function ConversationView({
   isFinished,
   isInputLocked = false,
   error,
-  header,
   footer,
 }: ConversationViewProps) {
   // メッセージ末尾の目印。新着時と返答待ち表示の切り替え時にここまでスクロールする。
@@ -64,12 +61,10 @@ export default function ConversationView({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-base-200 text-base-content">
-      {header}
-
-      <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 py-6 sm:px-6">
+    <div className="flex h-full min-h-0 flex-col text-base-content">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
         {/* メッセージ一覧: USERは右(chat-end)、相手は左(chat-start) */}
-        <div className="flex-1 space-y-4" aria-live="polite">
+        <div className="mx-auto w-full max-w-3xl space-y-4" aria-live="polite">
           {messages.map((message, index) => {
             const isUser = message.role === "USER";
 
@@ -107,9 +102,11 @@ export default function ConversationView({
           )}
           <div ref={messageEndRef} />
         </div>
+      </div>
 
-        {/* 画面下部に固定: エラー / 入力フォーム / 追加操作 */}
-        <div className="sticky bottom-0 mt-6 border-t border-base-300 bg-base-200/95 pt-4 pb-4 backdrop-blur">
+      {/* 右パネル下部: エラー / 入力フォーム / 追加操作 */}
+      <div className="shrink-0 border-t border-base-300/80 bg-base-100/75 px-4 py-4 backdrop-blur-md sm:px-6">
+        <div className="mx-auto w-full max-w-3xl">
           {error && (
             <div className="alert alert-error mb-3" role="alert">
               <LuCircleAlert className="size-5 shrink-0" aria-hidden="true" />

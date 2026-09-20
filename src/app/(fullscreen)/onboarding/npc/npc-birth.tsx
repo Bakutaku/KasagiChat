@@ -6,7 +6,6 @@ import type { ReviewResult } from "@/features/conversation/types";
 import { useNpcBirthFlow } from "@/features/npc/use-npc-birth-flow";
 import type { ErrorMessageOverrides } from "@/lib/api/errors";
 import NpcAwakening from "./npc-awakening";
-import NpcComplete from "./npc-complete";
 import NpcConversation from "./npc-conversation";
 import NpcLoading from "./npc-loading";
 import NpcSelect from "./npc-select";
@@ -110,8 +109,29 @@ export default function NpcBirth() {
     );
   }
 
-  if (flow.stage === "complete" && flow.npc && review) {
-    return <NpcComplete npc={flow.npc} review={review} onGoHome={flow.goHome} />;
+  if (
+    flow.stage === "complete" &&
+    flow.npc &&
+    review &&
+    conversation.conversation
+  ) {
+    return (
+      <NpcConversation
+        npc={flow.npc}
+        conversation={conversation.conversation}
+        draft={conversation.draft}
+        onDraftChange={conversation.setDraft}
+        onSend={conversation.send}
+        onReview={handleReview}
+        isSending={conversation.isSending}
+        isReviewing={conversation.isReviewing}
+        canSend={conversation.canSend}
+        isFinished={conversation.isFinished}
+        error={conversation.actionError}
+        review={review}
+        onGoHome={flow.goHome}
+      />
+    );
   }
 
   // ここから下は conversation。必要なデータが揃うまでは何も描画しない。
