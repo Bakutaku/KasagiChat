@@ -366,7 +366,7 @@ export default function CredentialSettings() {
       }
 
       setCredential((await response.json()) as Credential);
-      router.replace("/home");
+      router.replace("/onboarding/npc");
       router.refresh();
     } catch (error) {
       setActionError(getCredentialErrorMessage(error));
@@ -877,7 +877,11 @@ export default function CredentialSettings() {
             ) : (
               <LuCheck aria-hidden="true" />
             )}
-            {isSubmitting ? "確認して保存しています" : "設定してホームへ"}
+            {isSubmitting
+              ? "確認して保存しています"
+              : credential.configured
+                ? "設定を保存"
+                : "設定して分身づくりへ"}
           </button>
           {credential.configured ? (
             <button

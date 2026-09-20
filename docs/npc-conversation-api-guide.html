@@ -1,0 +1,1163 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>KasagiChat NPC誕生・会話 APIガイド</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-2: #eef2f8;
+      --text: #162033;
+      --muted: #667085;
+      --line: #d7deea;
+      --brand: #445783;
+      --brand-soft: #e8edf7;
+      --blue: #2563eb;
+      --blue-soft: #eaf1ff;
+      --green: #12805c;
+      --green-soft: #e5f7ef;
+      --amber: #a15c00;
+      --amber-soft: #fff2db;
+      --red: #b42318;
+      --red-soft: #ffebe8;
+      --purple: #6d3fc0;
+      --purple-soft: #f2ebff;
+      --shadow: 0 12px 34px rgba(24, 38, 70, 0.08);
+      --radius: 18px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0e1420;
+        --surface: #161f2e;
+        --surface-2: #202b3c;
+        --text: #edf2fb;
+        --muted: #aab6c8;
+        --line: #354256;
+        --brand: #a8b8df;
+        --brand-soft: #253454;
+        --blue: #86aefc;
+        --blue-soft: #172d54;
+        --green: #78d4b2;
+        --green-soft: #153b30;
+        --amber: #f0bd6a;
+        --amber-soft: #443116;
+        --red: #ff9b91;
+        --red-soft: #4b211e;
+        --purple: #c7a7ff;
+        --purple-soft: #33234f;
+        --shadow: 0 12px 34px rgba(0, 0, 0, 0.24);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, "BIZ UDPGothic", "Yu Gothic UI", "Hiragino Sans", sans-serif;
+      line-height: 1.7;
+    }
+    button, code, pre { font: inherit; }
+    code, pre { font-family: "Cascadia Code", Consolas, monospace; }
+    a { color: inherit; }
+    .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+    .hero {
+      padding: 56px 0 34px;
+      background:
+        radial-gradient(circle at 84% 16%, color-mix(in srgb, var(--purple) 18%, transparent) 0 12%, transparent 33%),
+        radial-gradient(circle at 8% 8%, color-mix(in srgb, var(--blue) 14%, transparent) 0 10%, transparent 30%);
+    }
+    .eyebrow { color: var(--brand); font-weight: 700; letter-spacing: .08em; font-size: 13px; }
+    h1 { max-width: 900px; margin: 8px 0 12px; font-size: clamp(32px, 5vw, 58px); line-height: 1.12; letter-spacing: -.035em; }
+    .lead { max-width: 820px; margin: 0; color: var(--muted); font-size: clamp(16px, 2vw, 20px); }
+    .status-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .pill { display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: 13px; box-shadow: var(--shadow); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+    .dot.future { background: var(--amber); }
+    .tabs-wrap { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+    .tabs { display: flex; gap: 6px; overflow-x: auto; padding: 12px 0; scrollbar-width: thin; }
+    .tab { appearance: none; border: 0; border-radius: 999px; padding: 9px 14px; background: transparent; color: var(--muted); white-space: nowrap; cursor: pointer; font-weight: 700; }
+    .tab[aria-selected="true"] { color: var(--surface); background: var(--brand); }
+    main { padding: 34px 0 72px; }
+    .panel[hidden] { display: none; }
+    .panel > * + * { margin-top: 28px; }
+    h2 { margin: 0 0 8px; font-size: clamp(25px, 3vw, 36px); line-height: 1.2; letter-spacing: -.02em; }
+    h3 { margin: 0 0 8px; font-size: 19px; line-height: 1.35; }
+    p { margin: 0; }
+    .muted { color: var(--muted); }
+    .section-head { margin-bottom: 18px; }
+    .grid { display: grid; gap: 16px; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .metric-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+    .metric-value { font-size: 34px; line-height: 1; font-weight: 800; margin: 8px 0; color: var(--brand); }
+    .tag { display: inline-flex; align-items: center; border-radius: 999px; padding: 3px 9px; font-size: 12px; font-weight: 800; letter-spacing: .02em; }
+    .tag.done { color: var(--green); background: var(--green-soft); }
+    .tag.partial { color: var(--amber); background: var(--amber-soft); }
+    .tag.future { color: var(--purple); background: var(--purple-soft); }
+    .tag.method { color: var(--blue); background: var(--blue-soft); min-width: 54px; justify-content: center; }
+    .tag.post { color: var(--purple); background: var(--purple-soft); }
+    .architecture { display: grid; grid-template-columns: 1fr 48px 1fr 48px 1.25fr 48px 1fr; align-items: stretch; gap: 4px; }
+    .arch-node { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+    .arch-node strong { display: block; margin-bottom: 5px; }
+    .arch-arrow { display: grid; place-items: center; color: var(--muted); font-size: 25px; }
+    .callout { border-left: 5px solid var(--brand); background: var(--brand-soft); padding: 15px 17px; border-radius: 0 14px 14px 0; }
+    .callout.warn { border-color: var(--amber); background: var(--amber-soft); }
+    .callout.danger { border-color: var(--red); background: var(--red-soft); }
+    .flow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; counter-reset: step; }
+    .flow-step { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; min-height: 158px; }
+    .flow-step::before { counter-increment: step; content: counter(step); display: grid; place-items: center; width: 29px; height: 29px; border-radius: 50%; background: var(--brand); color: var(--surface); font-weight: 800; margin-bottom: 12px; }
+    .flow-step:not(:last-child)::after { content: "→"; position: absolute; right: -18px; top: 50%; color: var(--muted); z-index: 2; font-weight: 800; }
+    .endpoint-list { display: grid; gap: 14px; }
+    details.endpoint { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    details.endpoint summary { display: grid; grid-template-columns: 64px minmax(230px, 1fr) 1.4fr 24px; align-items: center; gap: 12px; padding: 17px 19px; cursor: pointer; list-style: none; }
+    details.endpoint summary::-webkit-details-marker { display: none; }
+    details.endpoint summary::after { content: "+"; color: var(--muted); font-size: 22px; }
+    details.endpoint[open] summary::after { content: "−"; }
+    .path { font-family: "Cascadia Code", Consolas, monospace; font-weight: 700; overflow-wrap: anywhere; }
+    .endpoint-body { border-top: 1px solid var(--line); padding: 18px 19px 20px; }
+    .endpoint-body .grid { align-items: start; }
+    pre { margin: 10px 0 0; padding: 14px; border-radius: 12px; background: var(--surface-2); overflow-x: auto; font-size: 13px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .sequence { display: grid; grid-template-columns: 120px 1fr; column-gap: 14px; row-gap: 0; }
+    .seq-actor { text-align: right; padding: 13px 0; color: var(--muted); font-weight: 700; }
+    .seq-event { position: relative; margin-left: 12px; padding: 12px 14px 13px 28px; border-left: 2px solid var(--line); }
+    .seq-event::before { content: ""; position: absolute; left: -7px; top: 18px; width: 12px; height: 12px; border-radius: 50%; background: var(--brand); }
+    .seq-event code { color: var(--blue); }
+    .state-map { display: grid; grid-template-columns: 1fr 120px 1fr 120px 1fr; align-items: center; gap: 10px; }
+    .state { padding: 24px 18px; border-radius: var(--radius); background: var(--surface); border: 2px solid var(--line); text-align: center; box-shadow: var(--shadow); }
+    .state.active { border-color: var(--blue); }
+    .state.finished { border-color: var(--amber); }
+    .state.reviewed { border-color: var(--green); }
+    .transition { text-align: center; color: var(--muted); font-size: 13px; }
+    .transition b { display: block; color: var(--text); font-size: 24px; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+    table { width: 100%; border-collapse: collapse; min-width: 760px; }
+    th, td { text-align: left; vertical-align: top; padding: 13px 15px; border-bottom: 1px solid var(--line); }
+    th { background: var(--surface-2); font-size: 13px; color: var(--muted); }
+    tr:last-child td { border-bottom: 0; }
+    ul { margin: 8px 0 0; padding-left: 20px; }
+    li + li { margin-top: 5px; }
+    .db-map { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; align-items: start; }
+    .db-table { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    .db-table h3 { padding: 12px 14px; margin: 0; background: var(--surface-2); font-size: 15px; }
+    .db-table ul { list-style: none; margin: 0; padding: 10px 14px 13px; font-size: 13px; }
+    .db-table li + li { margin-top: 3px; }
+    .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .checklist { list-style: none; padding: 0; margin: 13px 0 0; }
+    .checklist li { position: relative; padding-left: 28px; }
+    .checklist li::before { position: absolute; left: 0; top: 0; font-weight: 900; }
+    .checklist.ok li::before { content: "✓"; color: var(--green); }
+    .checklist.todo li::before { content: "○"; color: var(--amber); }
+    .source-list code { overflow-wrap: anywhere; }
+    .implementation-map { display: grid; grid-template-columns: .8fr 1.2fr; gap: 18px; align-items: start; }
+    .file-tree { margin: 12px 0 0; padding: 0; list-style: none; font-family: "Cascadia Code", Consolas, monospace; font-size: 13px; }
+    .file-tree li { padding: 6px 0 6px 20px; border-left: 1px solid var(--line); position: relative; }
+    .file-tree li::before { content: ""; position: absolute; left: 0; top: 17px; width: 12px; border-top: 1px solid var(--line); }
+    .code-stack { display: grid; gap: 16px; }
+    .code-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+    .code-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 15px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+    .code-head code { font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+    .copy-btn { appearance: none; border: 1px solid var(--line); border-radius: 9px; padding: 6px 10px; background: var(--surface); color: var(--text); cursor: pointer; font-weight: 700; font-size: 12px; }
+    .code-card pre { margin: 0; border-radius: 0; max-height: 560px; overflow: auto; background: color-mix(in srgb, var(--surface-2) 62%, var(--surface)); }
+    .code-note { padding: 12px 15px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+    .step-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .step-strip > div { padding: 14px; border-top: 4px solid var(--brand); background: var(--surface); border-radius: 0 0 12px 12px; }
+    .step-strip strong { display: block; margin-bottom: 4px; }
+    footer { color: var(--muted); font-size: 13px; padding: 0 0 40px; }
+    .print-note { display: none; }
+
+    @media (max-width: 900px) {
+      .metric-grid, .grid.three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .architecture { grid-template-columns: 1fr; }
+      .arch-arrow { transform: rotate(90deg); height: 34px; }
+      .flow { grid-template-columns: 1fr 1fr; }
+      .flow-step:not(:last-child)::after { display: none; }
+      .state-map { grid-template-columns: 1fr; }
+      .transition b { transform: rotate(90deg); }
+      .db-map { grid-template-columns: repeat(2, 1fr); }
+      .implementation-map { grid-template-columns: 1fr; }
+      .step-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 22px, 1180px); }
+      .hero { padding-top: 36px; }
+      .metric-grid, .grid.two, .grid.three, .comparison, .flow, .db-map, .step-strip { grid-template-columns: 1fr; }
+      details.endpoint summary { grid-template-columns: 58px 1fr 24px; }
+      details.endpoint summary .summary-copy { grid-column: 1 / -1; }
+      .sequence { grid-template-columns: 88px 1fr; }
+      .card { padding: 17px; }
+    }
+    @media print {
+      :root { --bg: #fff; --surface: #fff; --surface-2: #f4f6fa; --text: #111827; --muted: #475467; --line: #cbd3df; }
+      .tabs-wrap { display: none; }
+      .panel[hidden] { display: block; }
+      .panel { break-before: page; }
+      .panel:first-child { break-before: auto; }
+      details.endpoint:not([open]) > *:not(summary) { display: block; }
+      .card, details.endpoint, .table-wrap, .state { box-shadow: none; break-inside: avoid; }
+      .print-note { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="shell">
+      <div class="eyebrow">KASAGICHAT · IMPLEMENTATION HANDOFF</div>
+      <h1>NPC誕生・会話<br>バックエンド接続ガイド</h1>
+      <p class="lead">フロントエンドの大枠を作り直すときに必要な、現行エンドポイント、状態遷移、保存仕様、エラー、未実装範囲を1枚に整理。</p>
+      <div class="status-row">
+        <span class="pill"><span class="dot"></span>実装確認日 2026-09-20</span>
+        <span class="pill"><span class="dot"></span>対象: NPC誕生会話</span>
+        <span class="pill"><span class="dot future"></span>練習・今日のひとことは未実装</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="tabs-wrap">
+    <nav class="tabs shell" aria-label="資料の章">
+      <button class="tab" type="button" role="tab" aria-selected="true" data-panel="overview">全体像</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-panel="endpoints">API一覧</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-panel="lifecycle">会話の流れ</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-panel="data">保存・エラー</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-panel="frontend-code">フロント実装例</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-panel="handoff">作り直し要点</button>
+    </nav>
+  </div>
+
+  <main class="shell">
+    <section class="panel" id="overview" role="tabpanel">
+      <div class="section-head">
+        <h2>まず押さえる全体像</h2>
+        <p class="muted">ブラウザは同一オリジンの <code>/api/*</code> を呼び、Next.jsがSpring Bootへ転送します。会話状態の正はバックエンドです。</p>
+      </div>
+
+      <div class="grid metric-grid">
+        <article class="card"><span class="tag done">現在利用</span><div class="metric-value">8</div><p>画面から関係するAPI<br><span class="muted">状態確認・CSRFを含む</span></p></article>
+        <article class="card"><span class="tag done">終了条件</span><div class="metric-value">6</div><p>最大往復数<br><span class="muted">6往復目の応答で自動終了</span></p></article>
+        <article class="card"><span class="tag done">手動終了</span><div class="metric-value">3+</div><p>振り返り可能な往復数<br><span class="muted">確認ダイアログなし</span></p></article>
+        <article class="card"><span class="tag partial">LLM利用</span><div class="metric-value">N+1</div><p>N往復＋振り返り1回<br><span class="muted">開始時はLLMを呼ばない</span></p></article>
+      </div>
+
+      <div class="architecture" aria-label="通信構成">
+        <div class="arch-node"><strong>PCブラウザ</strong><span class="muted">セッションCookie<br>CSRF Cookie / Header</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node"><strong>Next.js</strong><span class="muted">画面とルート制御<br><code>/api/*</code> rewrite</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node"><strong>Spring Boot</strong><span class="muted">本人確認・会話状態・排他制御<br>LLMプロンプト・振り返り</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node"><strong>PostgreSQL ＋ LLM</strong><span class="muted">会話ログ・NPC成長を保存<br>応答と振り返りを生成</span></div>
+      </div>
+
+      <div class="callout"><strong>フロントを作り直しても維持する契約:</strong> 会話ID・往復数・終了可否・状態はレスポンスを正として描画します。クライアントだけで往復を進めたり、誕生済みにしたりしません。</div>
+
+      <div>
+        <div class="section-head"><h2>オンボーディングから誕生まで</h2><p class="muted">現行のルートガードも含めたユーザー導線です。</p></div>
+        <div class="flow">
+          <article class="flow-step"><h3>AI利用設定</h3><p class="muted">APIキーまたはDEMOを登録。未設定ならNPC作成APIは拒否。</p></article>
+          <article class="flow-step"><h3>NPC作成</h3><p class="muted">プリセットと名前を送信。1ユーザー1体。</p></article>
+          <article class="flow-step"><h3>初会話開始</h3><p class="muted">冒頭台詞をDBマスタから抽選。LLM呼び出しなし。</p></article>
+          <article class="flow-step"><h3>3〜6往復</h3><p class="muted">発言ごとにNPC応答を生成。成功した1往復をまとめて保存。</p></article>
+          <article class="flow-step"><h3>振り返り</h3><p class="muted">人格・口調・話題・EXP・次回質問・誕生日時を一括反映。</p></article>
+        </div>
+      </div>
+
+      <div class="comparison">
+        <article class="card">
+          <span class="tag done">現行実装</span>
+          <h3 style="margin-top:10px">NPC誕生会話のみ</h3>
+          <ul class="checklist ok">
+            <li><code>BIRTH + scene: null</code></li>
+            <li>冒頭5パターンから抽選</li>
+            <li>3往復以降に手動振り返り</li>
+            <li>6往復で自動終了</li>
+            <li>再読込・多重送信対策あり</li>
+          </ul>
+        </article>
+        <article class="card">
+          <span class="tag future">将来仕様</span>
+          <h3 style="margin-top:10px">共通会話UIへ拡張予定</h3>
+          <ul class="checklist todo">
+            <li><code>PRACTICE</code>: CAFE / LOBBY / OFFICE</li>
+            <li><code>DAILY</code>: 今日のひとこと</li>
+            <li>練習は上限なし・手動終了</li>
+            <li>誕生以外のサービス/API処理</li>
+            <li>未振り返り会話の一覧画面</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel" id="endpoints" role="tabpanel" hidden>
+      <div class="section-head">
+        <h2>使用エンドポイント</h2>
+        <p class="muted">すべてブラウザから同一オリジンで呼びます。変更系は事前にCSRFトークンを取得します。</p>
+      </div>
+
+      <div class="endpoint-list">
+        <details class="endpoint">
+          <summary><span class="tag method">GET</span><span class="path">/api/user/me</span><span class="summary-copy muted">オンボーディング進行状態を判定</span></summary>
+          <div class="endpoint-body grid two">
+            <div><h3>利用箇所</h3><p>Next.jsのルートガード。<code>credentialConfigured</code>、<code>npcCreated</code>、<code>npcBorn</code> で遷移先を決めます。</p></div>
+            <div><h3>主要レスポンス</h3><pre>{
+  "onboarding": {
+    "credentialConfigured": true,
+    "npcCreated": true,
+    "npcBorn": false
+  }
+}</pre></div>
+          </div>
+        </details>
+
+        <details class="endpoint">
+          <summary><span class="tag method">GET</span><span class="path">/api/auth/csrf</span><span class="summary-copy muted">POST前にCSRF Cookieを発行</span></summary>
+          <div class="endpoint-body grid two">
+            <div><h3>契約</h3><p>レスポンス本文は不要。Cookie <code>XSRF-TOKEN</code> を読み、変更リクエストの <code>X-XSRF-TOKEN</code> ヘッダーへ設定します。</p></div>
+            <div><h3>認証</h3><p>このエンドポイント自体は未ログインでも到達可能。NPC・会話APIは登録済みユーザーのセッションが必要です。</p></div>
+          </div>
+        </details>
+
+        <details class="endpoint" open>
+          <summary><span class="tag method">GET</span><span class="path">/api/npc</span><span class="summary-copy muted">本人のNPC状態を取得</span></summary>
+          <div class="endpoint-body grid two">
+            <div><h3>画面の分岐</h3><ul><li><code>404 NPC_NOT_FOUND</code> → 名前・見た目の選択へ</li><li><code>bornAt: null</code> → 会話を開始/再開</li><li><code>bornAt</code> あり → <code>/home</code> へ</li></ul></div>
+            <div><h3>レスポンス</h3><pre>{
+  "name": "ミナト",
+  "presetId": "friendly-student",
+  "level": 1,
+  "exp": 0,
+  "profile": null,
+  "speechStyle": null,
+  "speechStyleEnabled": true,
+  "bornAt": null
+}</pre></div>
+          </div>
+        </details>
+
+        <details class="endpoint" open>
+          <summary><span class="tag method post">POST</span><span class="path">/api/npc</span><span class="summary-copy muted">誕生前のNPCを1体作成</span></summary>
+          <div class="endpoint-body grid two">
+            <div><h3>リクエスト</h3><pre>{
+  "presetId": "friendly-student",
+  "name": "ミナト"
+}</pre><p class="muted">name: 1〜30文字、presetId: 1〜50文字。空白除去後に保存。</p></div>
+            <div><h3>結果</h3><p><code>201 Created</code> とNPC状態を返します。AI利用設定が必要で、1ユーザー1体の重複作成は <code>409</code>。</p><div class="callout warn" style="margin-top:12px">現行バックエンドはプリセットIDを固定一覧で検証していません。フロント側の7 ID以外も文字列として通ります。</div></div>
+          </div>
+        </details>
+
+        <details class="endpoint" open>
+          <summary><span class="tag method post">POST</span><span class="path">/api/conversations</span><span class="summary-copy muted">誕生会話を開始、または未振り返り会話を再開</span></summary>
+          <div class="endpoint-body grid two">
+            <div><h3>リクエスト</h3><pre>{ "type": "BIRTH", "scene": null }</pre><p class="muted">現在はこの組み合わせだけ受理。新規なら <code>201</code>、既存の未振り返り会話なら <code>200</code>。</p></div>
+            <div><h3>レスポンス</h3><pre>{
+  "id": "uuid",
+  "type": "BIRTH",
+  "scene": null,
+  "status": "IN_PROGRESS",
+  "turn": 0,
+  "canFinish": false,
+  "messages": [
+    { "role": "ASSISTANT", "text": "はじめまして！…" }
+  ]
+}</pre></div>
+          </div>
+        </details>
+
+        <details class="endpoint">
+          <summary><span class="tag method">GET</span><span class="path">/api/conversations/{id}</span><span class="summary-copy muted">保存済みの状態と全メッセージを再取得</span></summary>
+          <div class="endpoint-body grid two">
+            <div><h3>使う場面</h3><p>開始直後、ページ再読込、<code>TURN_MISMATCH</code>、すでに終了済みだった場合の同期に使用します。</p></div>
+            <div><h3>本人限定</h3><p>公開UUIDとログインユーザーIDの両方で検索。他人のIDまたは存在しないIDは同じ <code>404 CONVERSATION_NOT_FOUND</code>。</p></div>
+          </div>
+        </details>
+
+        <details class="endpoint" open>
+          <summary><span class="tag method post">POST</span><span class="path">/api/conversations/{id}/messages</span><span class="summary-copy muted">ユーザー発言を送り、NPC応答を1件生成</span></summary>
+          <div class="endpoint-body grid two">
+            <div><h3>リクエスト</h3><pre>{
+  "text": "休みの日は映画を見ます",
+  "expectedTurn": 0
+}</pre><p class="muted">text: 1〜2000文字。expectedTurnは画面が最後に確認した往復数。</p></div>
+            <div><h3>レスポンス</h3><pre>{
+  "turn": 1,
+  "reply": { "role": "ASSISTANT", "text": "…" },
+  "canFinish": false,
+  "finished": false
+}</pre><p class="muted">成功時だけUSER＋ASSISTANTを同一トランザクションで保存。6往復目は <code>finished: true</code>。</p></div>
+          </div>
+        </details>
+
+        <details class="endpoint" open>
+          <summary><span class="tag method post">POST</span><span class="path">/api/conversations/{id}/review</span><span class="summary-copy muted">振り返りを実行し、NPC誕生を確定</span></summary>
+          <div class="endpoint-body grid two">
+            <div><h3>条件と動作</h3><p>3往復以上で実行可能。リクエスト本文なし。再実行時は保存済み結果を返すため、EXPを二重加算しません。</p></div>
+            <div><h3>レスポンス</h3><pre>{
+  "feedback": "話してくれてありがとう…",
+  "expGained": 13,
+  "level": 1,
+  "leveledUp": false,
+  "newTopics": [
+    { "id": 42, "name": "映画", "public": false }
+  ]
+}</pre></div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel" id="lifecycle" role="tabpanel" hidden>
+      <div class="section-head"><h2>会話の状態遷移</h2><p class="muted">表示上の演出より先に、サーバ状態とボタン条件を合わせるのが安全です。</p></div>
+
+      <div class="state-map" aria-label="会話状態">
+        <div class="state active"><span class="tag done">送信可能</span><h3 style="margin-top:10px">IN_PROGRESS</h3><p class="muted">0〜5往復<br>3往復から振り返り可能</p></div>
+        <div class="transition"><span>6往復目の応答</span><b>→</b></div>
+        <div class="state finished"><span class="tag partial">送信不可</span><h3 style="margin-top:10px">FINISHED</h3><p class="muted">振り返り待ち<br>ログは保持</p></div>
+        <div class="transition"><span>review成功</span><b>→</b></div>
+        <div class="state reviewed"><span class="tag done">誕生確定</span><h3 style="margin-top:10px">REVIEWED</h3><p class="muted">保存済み結果を再利用<br>bornAt設定済み</p></div>
+      </div>
+
+      <div class="callout warn"><strong>早期終了:</strong> 3〜5往復でも <code>/review</code> を直接呼べます。この場合、状態はIN_PROGRESSからREVIEWEDへ直接移り、別の「終了API」はありません。</div>
+
+      <div class="grid two">
+        <article class="card">
+          <h3>1. 開始・再開</h3>
+          <div class="sequence">
+            <div class="seq-actor">画面</div><div class="seq-event"><code>GET /api/npc</code> で作成・誕生状態を確認</div>
+            <div class="seq-actor">画面</div><div class="seq-event"><code>POST /api/conversations</code> にBIRTHを送信</div>
+            <div class="seq-actor">サーバ</div><div class="seq-event">未振り返り会話があれば同じ会話を返す</div>
+            <div class="seq-actor">サーバ</div><div class="seq-event">なければ冒頭台詞を抽選し、ASSISTANTの1件目として保存</div>
+            <div class="seq-actor">画面</div><div class="seq-event"><code>GET /api/conversations/{id}</code> で最新ログを描画</div>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>2. 1往復の送信</h3>
+          <div class="sequence">
+            <div class="seq-actor">画面</div><div class="seq-event">textと現在の <code>expectedTurn</code> を送る</div>
+            <div class="seq-actor">サーバ</div><div class="seq-event">会話行を排他ロックし、本人・状態・turnを検証</div>
+            <div class="seq-actor">LLM</div><div class="seq-event">履歴＋今回発言＋方向性から2〜4文を生成</div>
+            <div class="seq-actor">サーバ</div><div class="seq-event">USERとASSISTANTを保存、turnを+1</div>
+            <div class="seq-actor">失敗時</div><div class="seq-event">今回発言・応答・DEMO利用回数をまとめてロールバック</div>
+          </div>
+        </article>
+      </div>
+
+      <div class="grid two">
+        <article class="card">
+          <h3>3. 振り返りのLLM出力</h3>
+          <ul>
+            <li>肯定的フィードバック 1〜2文</li>
+            <li>人格文書 400〜800文字</li>
+            <li>話し方の特徴 100〜300文字</li>
+            <li>会話で明示された話題 最大5件</li>
+            <li>次回の「今日のひとこと」質問 1文</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>4. 振り返りで一括更新</h3>
+          <ul>
+            <li>NPC: profile / speechStyle / bornAt</li>
+            <li>成長: EXP加算・レベル再計算</li>
+            <li>話題: 初期興味度3、非公開で保存</li>
+            <li>次回質問: daily_questionsへ保存</li>
+            <li>会話: REVIEWEDと結果スナップショット</li>
+          </ul>
+        </article>
+      </div>
+
+      <div>
+        <div class="section-head"><h2>画面側で持つべき最小状態</h2></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>値</th><th>用途</th><th>注意</th></tr></thead>
+            <tbody>
+              <tr><td><code>npc</code></td><td>名前・画像・誕生済み判定</td><td>bornAtが入っていれば誕生画面へ戻さない</td></tr>
+              <tr><td><code>conversation.id</code></td><td>取得・送信・振り返り</td><td>URL公開用UUID。内部連番を想定しない</td></tr>
+              <tr><td><code>conversation.status</code></td><td>入力欄・完了ボタンの制御</td><td>FINISHED/REVIEWEDでは送信しない</td></tr>
+              <tr><td><code>conversation.turn</code></td><td>表示とexpectedTurn</td><td>ローカル加算よりAPIレスポンスを優先</td></tr>
+              <tr><td><code>conversation.canFinish</code></td><td>振り返りボタンの表示</td><td>3往復ルールを画面に重複実装しなくてもよい</td></tr>
+              <tr><td><code>conversation.messages</code></td><td>履歴表示</td><td>再読込時はGET結果で全置換</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="data" role="tabpanel" hidden>
+      <div class="section-head"><h2>保存されるデータ</h2><p class="muted">会話ログからNPC誕生後の人格・話題へ、振り返り時に派生します。</p></div>
+
+      <div class="db-map" aria-label="主要データモデル">
+        <div class="db-table"><h3>users</h3><ul><li>id</li><li>public_id</li><li>認証・表示情報</li></ul></div>
+        <div class="db-table"><h3>npcs</h3><ul><li>user_id 1:1</li><li>name / preset_id</li><li>level / exp</li><li>profile / speech_style</li><li>born_at</li></ul></div>
+        <div class="db-table"><h3>conversations</h3><ul><li>public_id UUID</li><li>type / scene / status</li><li>turn / opening_id</li><li>review結果</li><li>version</li></ul></div>
+        <div class="db-table"><h3>messages</h3><ul><li>conversation_id</li><li>seq</li><li>role</li><li>text</li></ul></div>
+        <div class="db-table"><h3>topics / daily_questions</h3><ul><li>NPCが覚えた話題</li><li>初期は非公開</li><li>次回質問</li><li>source_conversation</li></ul></div>
+      </div>
+
+      <div class="grid three">
+        <article class="card"><span class="tag done">整合性</span><h3 style="margin-top:10px">同時操作を直列化</h3><p>送信・振り返り時に会話を排他ロック。<code>expectedTurn</code> で古い画面からの重複送信も検出します。</p></article>
+        <article class="card"><span class="tag done">失敗耐性</span><h3 style="margin-top:10px">成功した往復だけ保存</h3><p>LLM失敗時はユーザー発言も保存されません。入力を残して再送できるUIが適します。</p></article>
+        <article class="card"><span class="tag done">冪等性</span><h3 style="margin-top:10px">振り返りは再取得可能</h3><p>REVIEWED後の再呼び出しは保存済み結果を返し、EXPや話題を二重反映しません。</p></article>
+      </div>
+
+      <div>
+        <div class="section-head"><h2>主要エラーと画面の扱い</h2></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>HTTP</th><th>code</th><th>意味</th><th>推奨UI</th></tr></thead>
+            <tbody>
+              <tr><td>400</td><td><code>VALIDATION_FAILED</code><br><code>INVALID_REQUEST_BODY</code></td><td>文字数・必須値・enum等が不正</td><td>入力付近に修正案を表示</td></tr>
+              <tr><td>400</td><td><code>INVALID_CONVERSATION_REQUEST</code></td><td>BIRTH以外、またはsceneあり</td><td>実装不整合として記録</td></tr>
+              <tr><td>400</td><td><code>CONVERSATION_TOO_SHORT</code></td><td>3往復未満でreview</td><td>会話を続ける</td></tr>
+              <tr><td>401 / 403</td><td>本文がJSONでない場合あり</td><td>未ログイン / 権限不足 / CSRF失敗</td><td>再ログインまたは再読込</td></tr>
+              <tr><td>404</td><td><code>NPC_NOT_FOUND</code></td><td>NPC未作成</td><td>作成画面へ</td></tr>
+              <tr><td>404</td><td><code>CONVERSATION_NOT_FOUND</code></td><td>不存在または他人の会話</td><td>開始処理からやり直す</td></tr>
+              <tr><td>409</td><td><code>NPC_ALREADY_EXISTS</code></td><td>重複作成</td><td>GET /api/npcで同期</td></tr>
+              <tr><td>409</td><td><code>NPC_STATE_INVALID</code></td><td>すでに誕生済み等</td><td>GET /api/npc後に/homeへ</td></tr>
+              <tr><td>409</td><td><code>TURN_MISMATCH</code></td><td>別画面で会話が進んだ</td><td>会話GETで全置換</td></tr>
+              <tr><td>409</td><td><code>CONVERSATION_FINISHED</code></td><td>終了後に送信</td><td>会話GET後、振り返りへ</td></tr>
+              <tr><td>409</td><td><code>CREDENTIAL_NOT_CONFIGURED</code></td><td>AI利用設定なし</td><td>設定画面へ誘導</td></tr>
+              <tr><td>429</td><td><code>DEMO_LIMIT_EXCEEDED</code></td><td>DEMO呼び出し上限</td><td>BYOK切替を案内</td></tr>
+              <tr><td>502</td><td><code>LLM_CALL_FAILED</code></td><td>生成失敗・空応答</td><td>入力を保持して再試行</td></tr>
+              <tr><td>503</td><td><code>CONVERSATION_CONFIGURATION_ERROR</code></td><td>冒頭マスタなし</td><td>運営向け障害表示</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="callout danger"><strong>機微情報:</strong> 会話本文はDBに保存され、LLMプロバイダーにも送られます。フロントのログ・分析イベント・エラー監視へ本文やprofileを載せない設計を維持してください。</div>
+    </section>
+
+    <section class="panel" id="frontend-code" role="tabpanel" hidden>
+      <div class="section-head">
+        <h2>フロントエンド実装例</h2>
+        <p class="muted">現行のSpring Boot APIを変えず、Next.js App Router側を「通信」「状態管理」「表示」に分ける例です。</p>
+      </div>
+
+      <div class="step-strip" aria-label="実装の分割方針">
+        <div><strong>1. API型</strong><span class="muted">レスポンスをTypeScriptで固定</span></div>
+        <div><strong>2. 通信</strong><span class="muted">Cookie・CSRF・エラーを集約</span></div>
+        <div><strong>3. 状態管理</strong><span class="muted">再同期と多重送信を制御</span></div>
+        <div><strong>4. UI</strong><span class="muted">daisyUIで状態を描画</span></div>
+      </div>
+
+      <div class="implementation-map">
+        <article class="card">
+          <span class="tag done">推奨構成</span>
+          <h3 style="margin-top:10px">役割ごとに分離</h3>
+          <ul class="file-tree">
+            <li>src/lib/npc-conversation-api.ts</li>
+            <li>src/hooks/use-birth-conversation.ts</li>
+            <li>src/components/npc-birth-chat.tsx</li>
+            <li>src/app/(fullscreen)/onboarding/npc/page.tsx</li>
+          </ul>
+        </article>
+        <div class="callout"><strong>境界:</strong> 下のコードはフロントエンド例だけです。APIレスポンスの <code>status</code>、<code>turn</code>、<code>canFinish</code> を正とし、人格生成や終了判定をブラウザへ移しません。</div>
+      </div>
+
+      <div class="code-stack">
+        <article class="code-card">
+          <div class="code-head"><code>src/lib/npc-conversation-api.ts</code><button class="copy-btn" type="button">コピー</button></div>
+          <pre><code>export type Npc = {
+  name: string;
+  presetId: string;
+  level: number;
+  exp: number;
+  profile: string | null;
+  speechStyle: string | null;
+  speechStyleEnabled: boolean;
+  bornAt: string | null;
+};
+
+export type ConversationMessage = {
+  role: "USER" | "ASSISTANT";
+  text: string;
+};
+
+export type Conversation = {
+  id: string;
+  type: "BIRTH";
+  scene: null;
+  status: "IN_PROGRESS" | "FINISHED" | "REVIEWED";
+  turn: number;
+  canFinish: boolean;
+  messages: ConversationMessage[];
+};
+
+export type SendMessageResult = {
+  turn: number;
+  reply: ConversationMessage;
+  canFinish: boolean;
+  finished: boolean;
+};
+
+export type ReviewResult = {
+  feedback: string;
+  expGained: number;
+  level: number;
+  leveledUp: boolean;
+  newTopics: Array&lt;{ id: number; name: string; public: boolean }&gt;;
+};
+
+type ProblemDetails = { code?: string; detail?: string };
+
+export class ApiError extends Error {
+  constructor(
+    readonly status: number,
+    readonly code?: string,
+    detail?: string,
+  ) {
+    super(detail ?? "APIリクエストに失敗しました。");
+  }
+}
+
+function readCookie(name: string) {
+  const prefix = `${name}=`;
+  const item = document.cookie
+    .split("; ")
+    .find((value) =&gt; value.startsWith(prefix));
+  return item ? decodeURIComponent(item.slice(prefix.length)) : null;
+}
+
+async function csrfToken() {
+  const response = await fetch("/api/auth/csrf", {
+    credentials: "same-origin",
+  });
+  if (!response.ok) throw new ApiError(response.status);
+
+  const token = readCookie("XSRF-TOKEN");
+  if (!token) throw new ApiError(0, "CSRF_TOKEN_NOT_FOUND");
+  return token;
+}
+
+async function request&lt;T&gt;(url: string, init: RequestInit = {}) {
+  const method = (init.method ?? "GET").toUpperCase();
+  const headers = new Headers(init.headers);
+
+  if (init.body) headers.set("Content-Type", "application/json");
+  if (method !== "GET" &amp;&amp; method !== "HEAD") {
+    headers.set("X-XSRF-TOKEN", await csrfToken());
+  }
+
+  const response = await fetch(url, {
+    ...init,
+    method,
+    headers,
+    credentials: "same-origin",
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const problem = (await response.json().catch(() =&gt; ({}))) as ProblemDetails;
+    throw new ApiError(response.status, problem.code, problem.detail);
+  }
+  return (await response.json()) as T;
+}
+
+export const birthApi = {
+  getNpc: () =&gt; request&lt;Npc&gt;("/api/npc"),
+
+  createNpc: (body: { presetId: string; name: string }) =&gt;
+    request&lt;Npc&gt;("/api/npc", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  start: () =&gt;
+    request&lt;Conversation&gt;("/api/conversations", {
+      method: "POST",
+      body: JSON.stringify({ type: "BIRTH", scene: null }),
+    }),
+
+  getConversation: (id: string) =&gt;
+    request&lt;Conversation&gt;(`/api/conversations/${id}`),
+
+  send: (id: string, text: string, expectedTurn: number) =&gt;
+    request&lt;SendMessageResult&gt;(`/api/conversations/${id}/messages`, {
+      method: "POST",
+      body: JSON.stringify({ text, expectedTurn }),
+    }),
+
+  review: (id: string) =&gt;
+    request&lt;ReviewResult&gt;(`/api/conversations/${id}/review`, {
+      method: "POST",
+    }),
+};</code></pre>
+          <div class="code-note">変更系だけCSRFを自動付与し、SpringのProblem Detailsを <code>ApiError</code> に統一します。</div>
+        </article>
+
+        <article class="code-card">
+          <div class="code-head"><code>src/hooks/use-birth-conversation.ts</code><button class="copy-btn" type="button">コピー</button></div>
+          <pre><code>"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import {
+  ApiError,
+  birthApi,
+  type Conversation,
+  type Npc,
+  type ReviewResult,
+} from "@/lib/npc-conversation-api";
+
+type Phase = "loading" | "setup" | "conversation" | "complete";
+
+export function useBirthConversation() {
+  const [phase, setPhase] = useState&lt;Phase&gt;("loading");
+  const [npc, setNpc] = useState&lt;Npc | null&gt;(null);
+  const [conversation, setConversation] =
+    useState&lt;Conversation | null&gt;(null);
+  const [review, setReview] = useState&lt;ReviewResult | null&gt;(null);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState&lt;string | null&gt;(null);
+
+  const load = useCallback(async () =&gt; {
+    setPhase("loading");
+    setError(null);
+    try {
+      const currentNpc = await birthApi.getNpc();
+      setNpc(currentNpc);
+
+      if (currentNpc.bornAt) {
+        setPhase("complete");
+        return;
+      }
+
+      const currentConversation = await birthApi.start();
+      setConversation(currentConversation);
+      setPhase("conversation");
+    } catch (cause) {
+      if (cause instanceof ApiError &amp;&amp; cause.code === "NPC_NOT_FOUND") {
+        setPhase("setup");
+        return;
+      }
+      setError(toMessage(cause));
+    }
+  }, []);
+
+  useEffect(() =&gt; {
+    void load();
+  }, [load]);
+
+  async function createNpc(presetId: string, name: string) {
+    if (pending) return;
+    setPending(true);
+    setError(null);
+    try {
+      const created = await birthApi.createNpc({
+        presetId,
+        name: name.trim(),
+      });
+      const started = await birthApi.start();
+      setNpc(created);
+      setConversation(started);
+      setPhase("conversation");
+    } catch (cause) {
+      setError(toMessage(cause));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function send(text: string) {
+    if (!conversation || pending || conversation.status !== "IN_PROGRESS") {
+      return false;
+    }
+
+    setPending(true);
+    setError(null);
+    try {
+      const result = await birthApi.send(
+        conversation.id,
+        text.trim(),
+        conversation.turn,
+      );
+      setConversation({
+        ...conversation,
+        turn: result.turn,
+        canFinish: result.canFinish,
+        status: result.finished ? "FINISHED" : "IN_PROGRESS",
+        messages: [
+          ...conversation.messages,
+          { role: "USER", text: text.trim() },
+          result.reply,
+        ],
+      });
+      return true;
+    } catch (cause) {
+      if (
+        cause instanceof ApiError &amp;&amp;
+        (cause.code === "TURN_MISMATCH" ||
+          cause.code === "CONVERSATION_FINISHED")
+      ) {
+        setConversation(await birthApi.getConversation(conversation.id));
+        setError("会話を最新の状態へ更新しました。");
+      } else {
+        setError(toMessage(cause));
+      }
+      return false;
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function finish() {
+    if (!conversation?.canFinish || pending) return;
+    setPending(true);
+    setError(null);
+    try {
+      const result = await birthApi.review(conversation.id);
+      setReview(result);
+      setConversation({ ...conversation, status: "REVIEWED" });
+      setPhase("complete");
+    } catch (cause) {
+      setError(toMessage(cause));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return {
+    phase,
+    npc,
+    conversation,
+    review,
+    pending,
+    error,
+    reload: load,
+    createNpc,
+    send,
+    finish,
+  };
+}
+
+function toMessage(cause: unknown) {
+  if (!(cause instanceof ApiError)) {
+    return "サーバーに接続できませんでした。";
+  }
+  if (cause.code === "LLM_CALL_FAILED") {
+    return "AIの返事を受け取れませんでした。入力を残して再試行できます。";
+  }
+  if (cause.code === "DEMO_LIMIT_EXCEEDED") {
+    return "デモ上限に達しました。AI利用設定を変更してください。";
+  }
+  if (cause.status === 401) return "再ログインしてください。";
+  return cause.message;
+}</code></pre>
+          <div class="code-note"><code>TURN_MISMATCH</code> と終了済み競合だけはGETで全同期。発言を先に楽観表示しないため、LLM失敗時の巻き戻しも不要です。</div>
+        </article>
+
+        <article class="code-card">
+          <div class="code-head"><code>src/components/npc-birth-chat.tsx</code><button class="copy-btn" type="button">コピー</button></div>
+          <pre><code>"use client";
+
+import Link from "next/link";
+import { useState, type FormEvent } from "react";
+import { LuHouse, LuLoaderCircle, LuSend, LuSparkles } from "react-icons/lu";
+import { useBirthConversation } from "@/hooks/use-birth-conversation";
+
+export function NpcBirthChat() {
+  const {
+    phase,
+    conversation,
+    npc,
+    review,
+    pending,
+    error,
+    createNpc,
+    send,
+    finish,
+  } = useBirthConversation();
+  const [draft, setDraft] = useState("");
+  const [name, setName] = useState("");
+  const [presetId, setPresetId] = useState("friendly-student");
+
+  if (phase === "loading") {
+    return (
+      &lt;div className="grid min-h-screen place-items-center" aria-busy="true"&gt;
+        &lt;LuLoaderCircle className="size-10 animate-spin" aria-hidden="true" /&gt;
+      &lt;/div&gt;
+    );
+  }
+
+  if (phase === "setup") {
+    return (
+      &lt;form
+        className="card mx-auto mt-16 w-full max-w-md bg-base-100 shadow-xl"
+        onSubmit={(event) =&gt; {
+          event.preventDefault();
+          void createNpc(presetId, name);
+        }}
+      &gt;
+        &lt;div className="card-body"&gt;
+          &lt;h1 className="card-title"&gt;分身を選ぶ&lt;/h1&gt;
+          &lt;label className="form-control"&gt;
+            &lt;span className="label-text mb-1"&gt;見た目&lt;/span&gt;
+            &lt;select
+              className="select select-bordered"
+              value={presetId}
+              onChange={(event) =&gt; setPresetId(event.target.value)}
+            &gt;
+              &lt;option value="friendly-student"&gt;親しみやすい学生&lt;/option&gt;
+              &lt;option value="quiet-boy"&gt;おだやかな男の子&lt;/option&gt;
+              &lt;option value="cheerful-girl"&gt;元気な女の子&lt;/option&gt;
+              &lt;option value="cool-girl"&gt;クールな女の子&lt;/option&gt;
+              &lt;option value="stylish-man"&gt;スタイリッシュな青年&lt;/option&gt;
+              &lt;option value="suited-guide"&gt;スーツの案内人&lt;/option&gt;
+              &lt;option value="cafe-server"&gt;カフェスタッフ&lt;/option&gt;
+            &lt;/select&gt;
+          &lt;/label&gt;
+          &lt;label className="form-control"&gt;
+            &lt;span className="label-text mb-1"&gt;名前&lt;/span&gt;
+            &lt;input
+              className="input input-bordered"
+              value={name}
+              maxLength={30}
+              onChange={(event) =&gt; setName(event.target.value)}
+            /&gt;
+          &lt;/label&gt;
+          {error &amp;&amp; &lt;div className="alert alert-error" role="alert"&gt;{error}&lt;/div&gt;}
+          &lt;button className="btn btn-primary" disabled={pending || !name.trim()}&gt;
+            この分身と話す
+          &lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/form&gt;
+    );
+  }
+
+  if (phase === "complete") {
+    return (
+      &lt;section className="mx-auto mt-16 max-w-xl text-center"&gt;
+        &lt;LuSparkles className="mx-auto size-12 text-primary" aria-hidden="true" /&gt;
+        &lt;h1 className="mt-4 text-3xl font-bold"&gt;{npc?.name ?? "分身"}が誕生しました&lt;/h1&gt;
+        {review &amp;&amp; &lt;p className="mt-4"&gt;{review.feedback}&lt;/p&gt;}
+        &lt;Link className="btn btn-primary mt-6" href="/home"&gt;
+          &lt;LuHouse aria-hidden="true" /&gt;
+          家へ行く
+        &lt;/Link&gt;
+      &lt;/section&gt;
+    );
+  }
+
+  if (!npc || !conversation) return null;
+
+  function onSubmit(event: FormEvent&lt;HTMLFormElement&gt;) {
+    event.preventDefault();
+    const text = draft.trim();
+    if (!text) return;
+    void send(text).then((sent) =&gt; {
+      if (sent) setDraft("");
+    });
+  }
+
+  const finished = conversation.status !== "IN_PROGRESS";
+
+  return (
+    &lt;section className="mx-auto flex min-h-screen max-w-4xl flex-col p-5"&gt;
+      &lt;header className="flex items-center justify-between border-b border-base-300 pb-4"&gt;
+        &lt;div&gt;
+          &lt;h1 className="text-xl font-bold"&gt;{npc.name}との最初の会話&lt;/h1&gt;
+          &lt;p className="text-sm text-base-content/60"&gt;
+            あとから答え直す必要はありません。自然に話してください。
+          &lt;/p&gt;
+        &lt;/div&gt;
+        &lt;span className="badge badge-ghost"&gt;{conversation.turn}/6 往復&lt;/span&gt;
+      &lt;/header&gt;
+
+      &lt;div className="flex-1 space-y-4 py-6" aria-live="polite"&gt;
+        {conversation.messages.map((message, index) =&gt; {
+          const user = message.role === "USER";
+          return (
+            &lt;div key={index} className={`chat ${user ? "chat-end" : "chat-start"}`}&gt;
+              &lt;div className="chat-header"&gt;{user ? "あなた" : npc.name}&lt;/div&gt;
+              &lt;div className={`chat-bubble ${user ? "chat-bubble-primary" : ""}`}&gt;
+                {message.text}
+              &lt;/div&gt;
+            &lt;/div&gt;
+          );
+        })}
+
+        {pending &amp;&amp; !finished &amp;&amp; (
+          &lt;div className="chat chat-start" aria-label={`${npc.name}が考え中`}&gt;
+            &lt;div className="chat-bubble"&gt;
+              &lt;LuLoaderCircle className="animate-spin" aria-hidden="true" /&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        )}
+      &lt;/div&gt;
+
+      {error &amp;&amp; &lt;div className="alert alert-error mb-3" role="alert"&gt;{error}&lt;/div&gt;}
+
+      {!finished &amp;&amp; (
+        &lt;form className="flex gap-2" onSubmit={onSubmit}&gt;
+          &lt;input
+            className="input input-bordered flex-1"
+            value={draft}
+            maxLength={2000}
+            disabled={pending}
+            placeholder={`${npc.name}に返事をする`}
+            onChange={(event) =&gt; setDraft(event.target.value)}
+          /&gt;
+          &lt;button className="btn btn-primary" disabled={pending || !draft.trim()}&gt;
+            &lt;LuSend aria-hidden="true" /&gt;
+            送信
+          &lt;/button&gt;
+        &lt;/form&gt;
+      )}
+
+      {conversation.canFinish &amp;&amp; (
+        &lt;button className="btn btn-secondary mt-3" disabled={pending} onClick={finish}&gt;
+          &lt;LuSparkles aria-hidden="true" /&gt;
+          {finished ? "振り返って誕生を確定する" : "ここまでの会話で誕生を確定する"}
+        &lt;/button&gt;
+      )}
+    &lt;/section&gt;
+  );
+}</code></pre>
+          <div class="code-note">現行ルールどおりdaisyUIと <code>react-icons/lu</code> を使用。画面はサーバ状態の表示に専念します。</div>
+        </article>
+
+        <article class="code-card">
+          <div class="code-head"><code>src/app/(fullscreen)/onboarding/npc/page.tsx</code><button class="copy-btn" type="button">コピー</button></div>
+          <pre><code>import type { Metadata } from "next";
+import { NpcBirthChat } from "@/components/npc-birth-chat";
+
+export const metadata: Metadata = {
+  title: "NPC誕生 | KasagiChat",
+  description: "あなたの分身と最初の会話をします。",
+};
+
+export default function NpcBirthPage() {
+  return &lt;NpcBirthChat /&gt;;
+}</code></pre>
+          <div class="code-note"><code>page.tsx</code> はServer Componentのまま、操作が必要な境界だけをClient Componentにします。</div>
+        </article>
+      </div>
+
+      <div class="callout warn"><strong>補足:</strong> このUI例は会話部分を中心にした骨格です。<code>phase === "setup"</code> の名前・プリセット選択、<code>phase === "complete"</code> の結果画面は同じhookへ接続して追加します。</div>
+    </section>
+
+    <section class="panel" id="handoff" role="tabpanel" hidden>
+      <div class="section-head"><h2>フロント大枠を作るときの要点</h2><p class="muted">デザインを自由に変えてよい部分と、API契約として維持する部分を分けています。</p></div>
+
+      <div class="comparison">
+        <article class="card">
+          <span class="tag done">自由に変更しやすい</span>
+          <h3 style="margin-top:10px">体験・見た目</h3>
+          <ul class="checklist ok">
+            <li>プリセット選択のレイアウト</li>
+            <li>誕生演出・アニメーション</li>
+            <li>チャット吹き出しやNPC配置</li>
+            <li>進捗表示の見せ方</li>
+            <li>完了画面の情報設計</li>
+          </ul>
+        </article>
+        <article class="card">
+          <span class="tag partial">維持すべき契約</span>
+          <h3 style="margin-top:10px">状態・安全性</h3>
+          <ul class="checklist todo">
+            <li>変更前のCSRF取得とヘッダー送信</li>
+            <li>セッションCookieを同一オリジンで送る</li>
+            <li>expectedTurnを毎回送る</li>
+            <li>TURN_MISMATCH時はサーバ状態へ同期</li>
+            <li>canFinish/statusをボタン制御に使う</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="grid two">
+        <article class="card">
+          <h3>最小実装順</h3>
+          <ol>
+            <li>GET /api/npcで初期分岐</li>
+            <li>POST /api/npcで名前・見た目確定</li>
+            <li>POST /api/conversationsで開始/再開</li>
+            <li>GET conversationで履歴描画</li>
+            <li>POST messagesで1往復ずつ進行</li>
+            <li>POST reviewで誕生確定</li>
+            <li>完了後GET /api/user/meまたは画面refresh</li>
+          </ol>
+        </article>
+        <article class="card">
+          <h3>先に判断したい仕様差分</h3>
+          <ul>
+            <li><strong>プリセットID:</strong> バックエンドでも固定7種を検証するか</li>
+            <li><strong>文字数:</strong> 名前30文字をUI上どう数えるか</li>
+            <li><strong>早期終了:</strong> 3往復後のボタン文言と演出</li>
+            <li><strong>LLM待機:</strong> 入力ロック、再試行、タイムアウト表現</li>
+            <li><strong>将来共通化:</strong> BIRTH専用画面から共通チャット殻を切り出すか</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="callout warn"><strong>現時点の検証境界:</strong> NPC・会話機能に専用の自動テストは見当たりません。資料はソースコードと要件の静的確認に基づき、実DB・LLMプロバイダーを通したE2E動作までは確認していません。</div>
+
+      <div>
+        <div class="section-head"><h2>仕様と実装の差分</h2></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>論点</th><th>要件</th><th>現行実装</th><th>扱い</th></tr></thead>
+            <tbody>
+              <tr><td>NPC誕生</td><td>初会話を性格診断にする</td><td>実装済み</td><td><span class="tag done">利用可</span></td></tr>
+              <tr><td>3〜6往復</td><td>3往復から終了、6往復で締め</td><td>実装済み</td><td><span class="tag done">利用可</span></td></tr>
+              <tr><td>冒頭台詞</td><td>開始時LLMなし、マスタ抽選</td><td>BIRTH 5件を開発初期化</td><td><span class="tag done">利用可</span></td></tr>
+              <tr><td>練習3シーン</td><td>CAFE / LOBBY / OFFICE</td><td>enum・冒頭マスタのみ。開始は拒否</td><td><span class="tag future">未実装</span></td></tr>
+              <tr><td>今日のひとこと</td><td>練習と同じ会話基盤</td><td>enum・生成質問保存のみ</td><td><span class="tag future">未実装</span></td></tr>
+              <tr><td>プリセット整合</td><td>フロントとサーバで同じIDを定義しサーバ検証</td><td>文字列長だけ検証</td><td><span class="tag partial">要判断</span></td></tr>
+              <tr><td>DBマイグレーション</td><td>本番スキーマを事前構築</td><td>Flyway未導入、EntityにTODOあり</td><td><span class="tag partial">運用前対応</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="source-list card">
+        <h3>確認した主なソース</h3>
+        <ul>
+          <li>フロント: <code>src/app/(fullscreen)/onboarding/npc/npc-birth.tsx</code></li>
+          <li>ルート制御: <code>src/proxy.ts</code> / <code>next.config.ts</code></li>
+          <li>バックエンド: <code>ConversationController</code> / <code>BirthConversationService</code></li>
+          <li>NPC: <code>NpcController</code> / <code>NpcService</code></li>
+          <li>認証: <code>SecurityConfig</code> / <code>OnboardingService</code></li>
+          <li>仕様: <code>requirements.md</code> 3-1〜3-4、3-9、データ・API方針</li>
+        </ul>
+      </div>
+      <p class="print-note">画面上部のタブは印刷時に全章展開されます。</p>
+    </section>
+  </main>
+
+  <footer class="shell">KasagiChat NPC誕生・会話 APIガイド · current implementation snapshot · 2026-09-20</footer>
+
+  <script>
+    const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+    const panels = Array.from(document.querySelectorAll('[role="tabpanel"]'));
+
+    function activate(panelId) {
+      tabs.forEach((tab) => tab.setAttribute('aria-selected', String(tab.dataset.panel === panelId)));
+      panels.forEach((panel) => { panel.hidden = panel.id !== panelId; });
+      history.replaceState(null, '', `#${panelId}`);
+      window.scrollTo({ top: document.querySelector('.tabs-wrap').offsetTop, behavior: 'smooth' });
+    }
+
+    tabs.forEach((tab) => tab.addEventListener('click', () => activate(tab.dataset.panel)));
+    document.querySelectorAll('.copy-btn').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const code = button.closest('.code-card').querySelector('pre code').textContent;
+        try {
+          await navigator.clipboard.writeText(code);
+          const original = button.textContent;
+          button.textContent = 'コピー済み';
+          window.setTimeout(() => { button.textContent = original; }, 1400);
+        } catch {
+          button.textContent = '選択してコピー';
+        }
+      });
+    });
+    const initial = location.hash.slice(1);
+    if (panels.some((panel) => panel.id === initial)) activate(initial);
+  </script>
+</body>
+</html>

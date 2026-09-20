@@ -76,7 +76,7 @@ export function TownPreview() {
         </span>
         <div className={styles.friend}>
           <Image
-            src="/assets/npc/おとなしめの男の子.png"
+            src="/assets/npc/presets/quiet-boy.png"
             alt="穏やかな表情の男の子の分身"
             fill
             sizes="(max-width: 640px) 28vw, 160px"
@@ -85,7 +85,7 @@ export function TownPreview() {
         </div>
         <div className={styles.character}>
           <Image
-            src="/assets/npc/元気な女の子.png"
+            src="/assets/npc/presets/cheerful-girl.png"
             alt="笑顔で手を差し伸べる女の子の分身"
             fill
             sizes="(max-width: 640px) 48vw, 280px"

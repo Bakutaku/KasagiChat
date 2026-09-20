@@ -5,6 +5,8 @@ type AuthState =
   | "unauthenticated"
   | "pending"
   | "registered-without-credential"
+  | "registered-without-npc"
+  | "registered-with-unborn-npc"
   | "registered"
   | "unknown";
 
@@ -12,11 +14,14 @@ const SESSION_COOKIE_NAME = "SESSION";
 const LOGIN_PATH = "/login";
 const ONBOARDING_PATH = "/onboarding";
 const CREDENTIAL_PATH = "/onboarding/credentials";
+const NPC_BIRTH_PATH = "/onboarding/npc";
 const HOME_PATH = "/home";
 
 type UserMeResponse = {
   onboarding?: {
     credentialConfigured?: boolean;
+    npcCreated?: boolean;
+    npcBorn?: boolean;
   };
 };
 
@@ -70,9 +75,15 @@ async function getAuthState(request: NextRequest): Promise<AuthState> {
       }
 
       const user = (await userResponse.json()) as UserMeResponse;
-      return user.onboarding?.credentialConfigured
+      if (!user.onboarding?.credentialConfigured) {
+        return "registered-without-credential";
+      }
+      if (!user.onboarding.npcCreated) {
+        return "registered-without-npc";
+      }
+      return user.onboarding.npcBorn
         ? "registered"
-        : "registered-without-credential";
+        : "registered-with-unborn-npc";
     }
 
     return "unknown";
@@ -105,14 +116,30 @@ export async function proxy(request: NextRequest) {
       : redirectTo(request, ONBOARDING_PATH);
   }
 
-  if (authState === "registered-without-credential") {
-    return pathname === CREDENTIAL_PATH
-      ? NextResponse.next()
-      : redirectTo(request, CREDENTIAL_PATH);
-  }
+  if (
+    authState === "registered-without-credential" ||
+    authState === "registered-without-npc" ||
+    authState === "registered-with-unborn-npc" ||
+    authState === "registered"
+  ) {
+    if (pathname === CREDENTIAL_PATH) {
+      return NextResponse.next();
+    }
 
-  if (authState === "registered") {
-    return pathname.startsWith(HOME_PATH) || pathname === CREDENTIAL_PATH
+    if (authState === "registered-without-credential") {
+      return redirectTo(request, CREDENTIAL_PATH);
+    }
+
+    if (
+      authState === "registered-without-npc" ||
+      authState === "registered-with-unborn-npc"
+    ) {
+      return pathname === NPC_BIRTH_PATH
+        ? NextResponse.next()
+        : redirectTo(request, NPC_BIRTH_PATH);
+    }
+
+    return pathname.startsWith(HOME_PATH)
       ? NextResponse.next()
       : redirectTo(request, HOME_PATH);
   }

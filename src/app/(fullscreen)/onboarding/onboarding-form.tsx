@@ -236,8 +236,8 @@ export default function OnboardingForm() {
         throw await getApiError(registrationResponse);
       }
 
-      // 本登録により権限がROLE_USERへ変わるため、ログイン後のホームへ移動します。
-      router.replace("/home");
+      // 本登録後はAI利用設定を済ませてから、分身の誕生へ進みます。
+      router.replace("/onboarding/credentials");
       router.refresh();
     } catch (error) {
       // 通信・認証・規約更新などのエラーを、ユーザーが次の行動を判断できる文言にします。
