@@ -12,6 +12,9 @@ import {
   LuLoaderCircle,
   LuUserRound,
 } from "react-icons/lu";
+import { api, isAbortError } from "@/lib/api/client";
+import { getErrorMessage } from "@/lib/api/errors";
+import type { ErrorMessageOverrides } from "@/lib/api/errors";
 
 type PendingRegistration = {
   displayName: string;
@@ -27,70 +30,26 @@ type RequiredTerm = {
   effectiveAt: string;
 };
 
-const CSRF_COOKIE_NAME = "XSRF-TOKEN";
-const CSRF_HEADER_NAME = "X-XSRF-TOKEN";
-
-type ProblemDetails = {
-  code?: string;
-  detail?: string;
+// この画面固有のエラー文言。通信失敗・5xx・CSRFは @/lib/api/errors の共通文言を使う。
+const REGISTRATION_ERROR_MESSAGES: ErrorMessageOverrides = {
+  codes: {
+    PENDING_REGISTRATION_EXPIRED:
+      "仮登録の有効期限が切れました。外部アカウントでもう一度ログインしてください。",
+    PENDING_REGISTRATION_NOT_FOUND:
+      "仮登録情報が見つかりません。外部アカウントでもう一度ログインしてください。",
+    USER_ALREADY_REGISTERED: "この外部アカウントはすでに登録されています。",
+    TERMS_AGREEMENT_REQUIRED:
+      "規約が更新されました。ページを再読み込みして、最新の規約をご確認ください。",
+  },
+  statuses: {
+    // 本登録前の画面なので、401は「セッション切れ」ではなくOAuthのやり直しを案内する。
+    401: "ログイン情報を確認できませんでした。外部アカウントでもう一度ログインしてください。",
+    403: "このページは初回登録中のアカウントのみ利用できます。",
+  },
 };
 
-class ApiError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code?: string,
-    detail?: string,
-  ) {
-    super(detail || "APIリクエストに失敗しました。");
-  }
-}
-
-async function getApiError(response: Response) {
-  let problem: ProblemDetails = {};
-
-  try {
-    problem = (await response.json()) as ProblemDetails;
-  } catch {
-    // Spring Security由来のエラーなど、JSONではないレスポンスも許容します。
-  }
-
-  return new ApiError(response.status, problem.code, problem.detail);
-}
-
-function getCookieValue(name: string) {
-  const prefix = `${name}=`;
-  const cookie = document.cookie
-    .split("; ")
-    .find((item) => item.startsWith(prefix));
-
-  return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
-}
-
-function getRegistrationErrorMessage(error: unknown) {
-  if (!(error instanceof ApiError)) {
-    return "サーバーに接続できませんでした。時間をおいてもう一度お試しください。";
-  }
-
-  switch (error.code) {
-    case "PENDING_REGISTRATION_EXPIRED":
-      return "仮登録の有効期限が切れました。外部アカウントでもう一度ログインしてください。";
-    case "PENDING_REGISTRATION_NOT_FOUND":
-      return "仮登録情報が見つかりません。外部アカウントでもう一度ログインしてください。";
-    case "USER_ALREADY_REGISTERED":
-      return "この外部アカウントはすでに登録されています。";
-    case "TERMS_AGREEMENT_REQUIRED":
-      return "規約が更新されました。ページを再読み込みして、最新の規約をご確認ください。";
-    case "CSRF_TOKEN_NOT_FOUND":
-      return "セキュリティトークンを取得できませんでした。ページを再読み込みしてください。";
-    default:
-      if (error.status === 401) {
-        return "ログイン情報を確認できませんでした。外部アカウントでもう一度ログインしてください。";
-      }
-      if (error.status === 403) {
-        return "このページは初回登録中のアカウントのみ利用できます。";
-      }
-      return error.message;
-  }
+function toMessage(error: unknown) {
+  return getErrorMessage(error, REGISTRATION_ERROR_MESSAGES);
 }
 
 function formatEffectiveDate(value: string) {
@@ -130,30 +89,19 @@ export default function OnboardingForm() {
 
       try {
         // 互いに依存しないため並列取得し、フォーム表示までの待ち時間を短くします。
-        const [profileResponse, termsResponse] = await Promise.all([
-          fetch("/api/registrations/me", {
-            credentials: "same-origin",
-            signal: controller.signal,
-          }),
-          fetch("/api/terms/required", {
-            credentials: "same-origin",
-            signal: controller.signal,
-          }),
+        // HTTPエラーはApiErrorになり、後段で状態別の案内文へ変換されます。
+        const [pendingProfile, requiredTerms] = await Promise.all([
+          api.get<PendingRegistration>(
+            "/api/registrations/me",
+            controller.signal,
+          ),
+          api.get<RequiredTerm[]>("/api/terms/required", controller.signal),
         ]);
 
-        // HTTPエラーを共通のApiErrorへ変換し、後段で状態別の案内文に変換します。
-        if (!profileResponse.ok) {
-          throw await getApiError(profileResponse);
-        }
-        if (!termsResponse.ok) {
-          throw await getApiError(termsResponse);
-        }
-
-        const pendingProfile = (await profileResponse.json()) as PendingRegistration;
-        const requiredTerms = (await termsResponse.json()) as RequiredTerm[];
-
         if (requiredTerms.length === 0) {
-          throw new Error("現在確認できる規約がありません。管理者へお問い合わせください。");
+          // 通信は成功しているためApiErrorにはせず、そのまま案内文を出します。
+          setLoadError("現在確認できる規約がありません。管理者へお問い合わせください。");
+          return;
         }
 
         // OAuthの表示名候補を入力欄へ反映し、規約同意は未選択から開始します。
@@ -162,10 +110,10 @@ export default function OnboardingForm() {
         setTerms(requiredTerms);
         setAgreedTermsIds([]);
       } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") {
+        if (isAbortError(error)) {
           return;
         }
-        setLoadError(getRegistrationErrorMessage(error));
+        setLoadError(toMessage(error));
       } finally {
         if (!controller.signal.aborted) {
           setIsLoading(false);
@@ -202,46 +150,18 @@ export default function OnboardingForm() {
     setSubmitError(null);
 
     try {
-      // 204レスポンスの本文は使わず、Spring SecurityにCSRF Cookieを初期化してもらいます。
-      const csrfResponse = await fetch("/api/auth/csrf", {
-        method: "GET",
-        credentials: "same-origin",
+      // CSRFトークンの取得とヘッダー付与は apiFetch が行います。
+      await api.post<void>("/api/registrations/complete", {
+        displayName: normalizedDisplayName,
+        agreedTermsIds,
       });
-
-      if (!csrfResponse.ok) {
-        throw await getApiError(csrfResponse);
-      }
-
-      const csrfToken = getCookieValue(CSRF_COOKIE_NAME);
-
-      if (!csrfToken) {
-        throw new ApiError(0, "CSRF_TOKEN_NOT_FOUND");
-      }
-
-      // Cookieの生トークンを対応するヘッダーへ載せ、本登録APIへ送ります。
-      const registrationResponse = await fetch("/api/registrations/complete", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-          [CSRF_HEADER_NAME]: csrfToken,
-        },
-        body: JSON.stringify({
-          displayName: normalizedDisplayName,
-          agreedTermsIds,
-        }),
-      });
-
-      if (!registrationResponse.ok) {
-        throw await getApiError(registrationResponse);
-      }
 
       // 本登録後はAI利用設定を済ませてから、分身の誕生へ進みます。
       router.replace("/onboarding/credentials");
       router.refresh();
     } catch (error) {
       // 通信・認証・規約更新などのエラーを、ユーザーが次の行動を判断できる文言にします。
-      setSubmitError(getRegistrationErrorMessage(error));
+      setSubmitError(toMessage(error));
       setIsSubmitting(false);
     }
   }

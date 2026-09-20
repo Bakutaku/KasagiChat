@@ -1,52 +1,59 @@
 "use client";
 
-import { redirect } from "next/navigation";
-
-const CSRF_COOKIE_NAME = "XSRF-TOKEN";
-const CSRF_HEADER_NAME = "X-XSRF-TOKEN";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { LuLoaderCircle, LuLogOut } from "react-icons/lu";
+import { api } from "@/lib/api/client";
+import { getErrorMessage } from "@/lib/api/errors";
 
 export default function LogoutButton() {
-
-
-function getCookieValue(name: string) {
-const prefix = `${name}=`;
-const cookie = document.cookie
-  .split("; ")
-  .find((item) => item.startsWith(prefix));
-
-return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
-}
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function onLogout() {
-    try {
-      await fetch("/api/auth/csrf", {
-        method: "GET",
-        credentials: "same-origin",
-      });
-
-      const csrfToken = getCookieValue(CSRF_COOKIE_NAME);
-
-      if (!csrfToken) {
-        throw new Error("CSRFトークンが取得できませんでした。");
-      }
-
-      // Cookieの生トークンを対応するヘッダーへ載せ、本登録APIへ送ります。
-      await fetch("/api/logout", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-          [CSRF_HEADER_NAME]: csrfToken,
-        }
-      });
-
-      // ログアウト後はログイン画面へリダイレクトします。
-      redirect("/");
-
-    } catch (error) {
-      console.error("Logout failed:", error);
+    if (isLoggingOut) {
+      return;
     }
+
+    setIsLoggingOut(true);
+    setError(null);
+
+    try {
+      // CSRFトークンの取得とヘッダー付与は apiFetch が行います。
+      await api.post<void>("/api/logout");
+    } catch (cause) {
+      setError(getErrorMessage(cause));
+      setIsLoggingOut(false);
+      return;
+    }
+
+    // 画面遷移は try の外で行う。イベントハンドラー内なので redirect() ではなく router を使う。
+    // refresh でルートガードにログアウト後のセッション状態を読み直させる。
+    router.replace("/");
+    router.refresh();
   }
 
-  return <button onClick={onLogout} className="btn btn-primary">Logout</button>;
-};
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <button
+        onClick={onLogout}
+        className="btn btn-primary"
+        type="button"
+        disabled={isLoggingOut}
+      >
+        {isLoggingOut ? (
+          <LuLoaderCircle className="animate-spin" aria-hidden="true" />
+        ) : (
+          <LuLogOut aria-hidden="true" />
+        )}
+        Logout
+      </button>
+      {error && (
+        <p className="text-xs text-error" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}

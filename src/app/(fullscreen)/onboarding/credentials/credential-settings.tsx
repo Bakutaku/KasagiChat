@@ -17,6 +17,9 @@ import {
   LuShieldCheck,
   LuTrash2,
 } from "react-icons/lu";
+import { api, isAbortError } from "@/lib/api/client";
+import { getErrorMessage } from "@/lib/api/errors";
+import type { ErrorMessageOverrides } from "@/lib/api/errors";
 
 type LlmProvider = "OPENAI" | "ANTHROPIC" | "DEMO";
 type SetupMode = "BYOK" | "DEMO";
@@ -48,104 +51,38 @@ type CredentialOptions = {
   providers: ProviderOption[];
 };
 
-type ProblemDetails = {
-  code?: string;
-  detail?: string;
-};
-
-const CSRF_COOKIE_NAME = "XSRF-TOKEN";
-const CSRF_HEADER_NAME = "X-XSRF-TOKEN";
-
 const PROVIDER_LABELS: Record<LlmProvider, string> = {
   OPENAI: "OpenAI",
   ANTHROPIC: "Anthropic",
   DEMO: "デモ利用",
 };
 
-class ApiError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code?: string,
-    detail?: string,
-  ) {
-    super(detail || "APIリクエストに失敗しました。");
-  }
-}
+// この画面固有のエラー文言。通信失敗・401・5xxは @/lib/api/errors の共通文言を使う。
+const CREDENTIAL_ERROR_MESSAGES: ErrorMessageOverrides = {
+  codes: {
+    INVALID_API_KEY:
+      "APIキーを確認できませんでした。選択したプロバイダーで有効なキーか、モデルを利用できるキーかをご確認ください。",
+    INVALID_PASSPHRASE:
+      "合言葉が一致しませんでした。案内された合言葉をもう一度ご確認ください。",
+    INVALID_CREDENTIAL_REQUEST:
+      "選択内容と入力内容の組み合わせが正しくありません。入力し直してください。",
+    VALIDATION_FAILED: "入力内容を確認できませんでした。各項目を入力し直してください。",
+    INVALID_REQUEST_BODY: "入力内容を確認できませんでした。各項目を入力し直してください。",
+    DEMO_LIMIT_EXCEEDED:
+      "デモ利用の上限に達しています。自分のAPIキーを設定して続けてください。",
+    CSRF_TOKEN_NOT_FOUND:
+      "安全な送信に必要な情報を取得できませんでした。ページを再読み込みしてください。",
+  },
+  statuses: {
+    403: "この設定を変更する権限を確認できませんでした。ページを再読み込みしてください。",
+    429: "短時間に操作が集中しています。少し待ってから、もう一度お試しください。",
+  },
+  // サーバーのdetailは設定値を含み得るため、そのままは出さず定型文にする。
+  fallback: "設定を保存できませんでした。入力内容を確認して、もう一度お試しください。",
+};
 
-async function getApiError(response: Response) {
-  let problem: ProblemDetails = {};
-
-  try {
-    problem = (await response.json()) as ProblemDetails;
-  } catch {
-    // Spring Security由来など、Problem Detailsではないエラーも共通表示へ変換します。
-  }
-
-  return new ApiError(response.status, problem.code, problem.detail);
-}
-
-function getCookieValue(name: string) {
-  const prefix = `${name}=`;
-  const cookie = document.cookie
-    .split("; ")
-    .find((item) => item.startsWith(prefix));
-
-  return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
-}
-
-function getCredentialErrorMessage(error: unknown) {
-  if (!(error instanceof ApiError)) {
-    return "サーバーに接続できませんでした。時間をおいて、もう一度お試しください。";
-  }
-
-  switch (error.code) {
-    case "INVALID_API_KEY":
-      return "APIキーを確認できませんでした。選択したプロバイダーで有効なキーか、モデルを利用できるキーかをご確認ください。";
-    case "INVALID_PASSPHRASE":
-      return "合言葉が一致しませんでした。案内された合言葉をもう一度ご確認ください。";
-    case "INVALID_CREDENTIAL_REQUEST":
-      return "選択内容と入力内容の組み合わせが正しくありません。入力し直してください。";
-    case "VALIDATION_FAILED":
-    case "INVALID_REQUEST_BODY":
-      return "入力内容を確認できませんでした。各項目を入力し直してください。";
-    case "DEMO_LIMIT_EXCEEDED":
-      return "デモ利用の上限に達しています。自分のAPIキーを設定して続けてください。";
-    case "CSRF_TOKEN_NOT_FOUND":
-      return "安全な送信に必要な情報を取得できませんでした。ページを再読み込みしてください。";
-    default:
-      if (error.status === 401) {
-        return "ログインの有効期限が切れました。もう一度ログインしてください。";
-      }
-      if (error.status === 403) {
-        return "この設定を変更する権限を確認できませんでした。ページを再読み込みしてください。";
-      }
-      if (error.status === 429) {
-        return "短時間に操作が集中しています。少し待ってから、もう一度お試しください。";
-      }
-      if (error.status >= 500) {
-        return "サーバーで問題が発生しました。時間をおいて、もう一度お試しください。";
-      }
-      return "設定を保存できませんでした。入力内容を確認して、もう一度お試しください。";
-  }
-}
-
-async function getCsrfToken() {
-  const response = await fetch("/api/auth/csrf", {
-    method: "GET",
-    credentials: "same-origin",
-  });
-
-  if (!response.ok) {
-    throw await getApiError(response);
-  }
-
-  const token = getCookieValue(CSRF_COOKIE_NAME);
-
-  if (!token) {
-    throw new ApiError(0, "CSRF_TOKEN_NOT_FOUND");
-  }
-
-  return token;
+function toMessage(error: unknown) {
+  return getErrorMessage(error, CREDENTIAL_ERROR_MESSAGES);
 }
 
 function isByokProvider(
@@ -184,30 +121,13 @@ export default function CredentialSettings() {
       setActionError(null);
 
       try {
-        const [credentialResponse, optionsResponse] = await Promise.all([
-          fetch("/api/credentials", {
-            credentials: "same-origin",
-            cache: "no-store",
-            signal: controller.signal,
-          }),
-          fetch("/api/credentials/options", {
-            credentials: "same-origin",
-            cache: "no-store",
-            signal: controller.signal,
-          }),
+        const [currentCredential, availableOptions] = await Promise.all([
+          api.get<Credential>("/api/credentials", controller.signal),
+          api.get<CredentialOptions>(
+            "/api/credentials/options",
+            controller.signal,
+          ),
         ]);
-
-        if (!credentialResponse.ok) {
-          throw await getApiError(credentialResponse);
-        }
-        if (!optionsResponse.ok) {
-          throw await getApiError(optionsResponse);
-        }
-
-        const currentCredential =
-          (await credentialResponse.json()) as Credential;
-        const availableOptions =
-          (await optionsResponse.json()) as CredentialOptions;
         const byokOptions = availableOptions.providers.filter(
           (option) => option.provider !== "DEMO" && option.available,
         );
@@ -240,10 +160,10 @@ export default function CredentialSettings() {
           );
         }
       } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") {
+        if (isAbortError(error)) {
           return;
         }
-        setLoadError(getCredentialErrorMessage(error));
+        setLoadError(toMessage(error));
       } finally {
         if (!controller.signal.aborted) {
           setIsLoading(false);
@@ -300,9 +220,10 @@ export default function CredentialSettings() {
     }
 
     setMode("BYOK");
-    if (isByokProvider(credential?.provider || null)) {
+    // credential 自体も絞り込まないと、この中で credential.provider を非nullとして扱えない。
+    if (credential && isByokProvider(credential.provider)) {
       const currentOption = byokOptions.find(
-        (option) => option.provider === credential?.provider,
+        (option) => option.provider === credential.provider,
       );
       setProvider(credential.provider);
       setModel(
@@ -320,8 +241,7 @@ export default function CredentialSettings() {
     setStatusMessage(null);
 
     try {
-      const csrfToken = await getCsrfToken();
-      let requestBody: string;
+      let requestBody: unknown;
 
       if (mode === "BYOK") {
         let apiKey = apiKeyInputRef.current?.value.trim() || "";
@@ -331,7 +251,7 @@ export default function CredentialSettings() {
           return;
         }
 
-        requestBody = JSON.stringify({ provider, model, apiKey });
+        requestBody = { provider, model, apiKey };
         apiKey = "";
       } else {
         let passphrase = passphraseInputRef.current?.value.trim() || "";
@@ -341,35 +261,21 @@ export default function CredentialSettings() {
           return;
         }
 
-        requestBody = JSON.stringify({ provider: "DEMO", passphrase });
+        requestBody = { provider: "DEMO", passphrase };
         passphrase = "";
       }
 
-      const request = fetch("/api/credentials", {
-        method: "PUT",
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-          [CSRF_HEADER_NAME]: csrfToken,
-        },
-        body: requestBody,
-      });
+      // CSRFトークンの取得・ヘッダー付与・本文のJSON化は apiFetch が行います。
+      const request = api.put<Credential>("/api/credentials", requestBody);
 
-      // 送信開始後はDOMにも生のキー／合言葉を残しません。
+      // 送信開始後はDOMに生のキー／合言葉を残しません。
       clearSensitiveInputs();
-      requestBody = "";
 
-      const response = await request;
-
-      if (!response.ok) {
-        throw await getApiError(response);
-      }
-
-      setCredential((await response.json()) as Credential);
+      setCredential(await request);
       router.replace("/onboarding/npc");
       router.refresh();
     } catch (error) {
-      setActionError(getCredentialErrorMessage(error));
+      setActionError(toMessage(error));
       setIsSubmitting(false);
     }
   }
@@ -380,18 +286,8 @@ export default function CredentialSettings() {
     setStatusMessage(null);
 
     try {
-      const csrfToken = await getCsrfToken();
-      const response = await fetch("/api/credentials", {
-        method: "DELETE",
-        credentials: "same-origin",
-        headers: {
-          [CSRF_HEADER_NAME]: csrfToken,
-        },
-      });
-
-      if (!response.ok) {
-        throw await getApiError(response);
-      }
+      // 本文なしのDELETE。CSRFトークンは apiFetch が付けます。
+      await api.delete<void>("/api/credentials");
 
       clearSensitiveInputs();
       setCredential({
@@ -406,7 +302,7 @@ export default function CredentialSettings() {
       setMode("BYOK");
       setStatusMessage("AI利用設定を削除しました。続けるには新しい設定が必要です。");
     } catch (error) {
-      setActionError(getCredentialErrorMessage(error));
+      setActionError(toMessage(error));
     } finally {
       setIsDeleting(false);
     }

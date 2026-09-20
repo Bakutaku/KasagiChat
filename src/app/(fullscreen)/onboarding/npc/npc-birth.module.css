@@ -15,11 +15,15 @@
   background-image:
     radial-gradient(circle, rgb(255 255 255 / 88%) 0 1px, transparent 1.8px),
     radial-gradient(circle, color-mix(in oklab, var(--color-secondary) 74%, white) 0 1.2px, transparent 2px),
-    linear-gradient(90deg, transparent, color-mix(in oklab, var(--color-primary) 18%, transparent), transparent);
-  background-position: 0 0, 22px 18px, 0 50%;
-  background-size: 42px 38px, 68px 58px, 100% 42%;
-  filter: blur(0.2px);
-  mask-image: linear-gradient(90deg, transparent, black 16%, black 84%, transparent);
+    radial-gradient(ellipse 50% 50% at 50% 50%, color-mix(in oklab, var(--color-primary) 22%, transparent), transparent);
+  background-position: 0 0, 22px 18px, 0 0;
+  background-size: 42px 38px, 68px 58px, 100% 100%;
+  background-repeat: repeat, repeat, no-repeat;
+  filter: blur(0.6px);
+  mask-image:
+    linear-gradient(90deg, transparent, black 22%, black 78%, transparent),
+    linear-gradient(180deg, transparent, black 35%, black 65%, transparent);
+  mask-composite: intersect;
   animation: starDrift 22s linear infinite;
 }
 
@@ -47,38 +51,41 @@
 .orb {
   position: relative;
   display: grid;
-  width: clamp(13rem, 38vw, 19rem);
+  width: clamp(4.5rem, 15vw, 7rem);
   aspect-ratio: 1;
   place-items: center;
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 24%);
   border-radius: 999px;
-  background:
-    radial-gradient(circle at 38% 30%, rgb(255 255 255 / 74%) 0 4%, transparent 26%),
-    linear-gradient(145deg, color-mix(in oklab, var(--color-primary) 84%, white), color-mix(in oklab, var(--color-secondary) 72%, #5f54d8) 55%, color-mix(in oklab, var(--color-accent) 68%, #161c3b));
+  background: linear-gradient(145deg, var(--color-primary), var(--color-secondary));
   box-shadow:
     0 0 2.5rem color-mix(in oklab, var(--color-primary) 34%, transparent),
     0 0 6rem color-mix(in oklab, var(--color-secondary) 24%, transparent),
     inset 0 0 2.5rem rgb(255 255 255 / 18%);
-  animation: orbBreath 4.8s ease-in-out infinite;
+  animation:
+    orbAppear 3.2s cubic-bezier(0.22, 1, 0.36, 1) both,
+    orbBreath 4.8s ease-in-out 1.2s infinite;
 }
 
-.orb::before,
-.orb::after {
-  position: absolute;
+.orb::before {
   content: "";
-  border: 1px solid rgb(255 255 255 / 22%);
+  position: absolute;
+  z-index: 2;
+  inset: 0;
   border-radius: inherit;
-  inset: 8%;
-  animation: ringTurn 13s linear infinite;
-}
-
-.orb::after {
-  inset: 17%;
-  border-style: dashed;
-  opacity: 0.58;
-  animation-direction: reverse;
-  animation-duration: 17s;
+  background:
+    radial-gradient(
+      ellipse 42% 26% at 30% 22%,
+      rgb(255 255 255 / 30%),
+      transparent 70%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      transparent 58%,
+      rgb(255 255 255 / 10%) 100%
+    );
+  mix-blend-mode: screen;
+  pointer-events: none;
 }
 
 .avatarReveal {
@@ -100,9 +107,79 @@
   animation: lineReveal 0.9s ease forwards;
 }
 
+/* --- setup(NpcSelect)専用 --- */
+
+/* プリセットカード。--delay で1枚ずつ遅らせて浮かび上がらせる */
+.presetItem {
+  opacity: 0;
+  transform: translateY(0.9rem);
+  animation: lineReveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--delay, 0s) forwards;
+}
+
+.presetCard {
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.28s ease,
+    box-shadow 0.28s ease;
+}
+
+.presetItem:hover .presetCard {
+  transform: translateY(-0.3rem);
+}
+
+.presetInput:checked + .presetCard {
+  transform: translateY(-0.4rem);
+  box-shadow:
+    0 0.75rem 1.75rem color-mix(in oklab, var(--color-primary) 26%, transparent),
+    0 0 2.5rem color-mix(in oklab, var(--color-secondary) 14%, transparent);
+}
+
+/* 選択マーク。チェック時だけふわりと出す */
+.presetCheck {
+  opacity: 0;
+  scale: 0.7;
+  transition:
+    opacity 0.24s ease,
+    scale 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.presetInput:checked + .presetCard .presetCheck {
+  opacity: 1;
+  scale: 1;
+}
+
+/*
+ * 高さを 0fr -> 1fr で補間する開閉領域。
+ * 中身は常にマウントしたままにして、急に現れないようにする。
+ */
+.collapsible {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  translate: 0 -0.5rem;
+  transition:
+    grid-template-rows 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s ease,
+    translate 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.collapsibleOpen {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* overflow: hidden でフォーカスリングが切れないよう、余白ぶんを外へ逃がす */
+.collapsibleInner {
+  min-height: 0;
+  overflow: hidden;
+  padding: 0.4rem;
+  margin: -0.4rem;
+}
+
 @keyframes starDrift {
   to {
-    background-position: 84px 0, 158px 18px, 0 50%;
+    background-position: 84px 0, 158px 18px, 0 0;
   }
 }
 
@@ -122,13 +199,26 @@
   }
 }
 
+@keyframes orbAppear {
+  from {
+    opacity: 0;
+    scale: 0.4;
+    filter: blur(0.75rem);
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+    filter: blur(0);
+  }
+}
+
 @keyframes orbBreath {
   0%,
   100% {
-    transform: scale(0.98);
+    transform: scale(0.99);
   }
   50% {
-    transform: scale(1.025);
+    transform: scale(1.03);
   }
 }
 
@@ -157,15 +247,22 @@
   .shootingStar,
   .orb,
   .orb::before,
-  .orb::after,
   .avatarReveal,
-  .revealLine {
+  .revealLine,
+  .presetItem {
     animation: none;
   }
 
   .avatarReveal,
-  .revealLine {
+  .revealLine,
+  .presetItem {
     opacity: 1;
     transform: none;
+  }
+
+  .presetCard,
+  .presetCheck,
+  .collapsible {
+    transition: none;
   }
 }
