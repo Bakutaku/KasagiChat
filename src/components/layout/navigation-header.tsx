@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LuMenu } from "react-icons/lu";
+import { LuKeyRound, LuMenu } from "react-icons/lu";
 
 import KasagiLogo from "@/components/icon/KasagiLogo";
 import { ThemeSelector } from "@/components/themes/theme-selector";
@@ -45,9 +45,11 @@ export function NavigationHeader() {
         </div>
         <Link
           className="btn btn-outline btn-primary btn-sm rounded-full sm:btn-md"
-          href="/login"
+          href="/onboarding/credentials"
         >
-          ログイン
+          <LuKeyRound aria-hidden="true" />
+          <span className="hidden sm:inline">AI利用設定</span>
+          <span className="sm:hidden">AI設定</span>
         </Link>
         <details className="dropdown dropdown-end lg:hidden">
           <summary

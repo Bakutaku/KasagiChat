@@ -1,12 +1,24 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-type AuthState = "unauthenticated" | "pending" | "registered" | "unknown";
+type AuthState =
+  | "unauthenticated"
+  | "pending"
+  | "registered-without-credential"
+  | "registered"
+  | "unknown";
 
 const SESSION_COOKIE_NAME = "SESSION";
 const LOGIN_PATH = "/login";
 const ONBOARDING_PATH = "/onboarding";
+const CREDENTIAL_PATH = "/onboarding/credentials";
 const HOME_PATH = "/home";
+
+type UserMeResponse = {
+  onboarding?: {
+    credentialConfigured?: boolean;
+  };
+};
 
 /**
  * Spring Security が持つセッションを使い、画面遷移に必要な状態だけを確認します。
@@ -14,7 +26,7 @@ const HOME_PATH = "/home";
  * GET /api/registrations/me の契約:
  * - 200: 仮登録中
  * - 401: 未ログイン（期限切れのセッションを含む）
- * - 403: 本登録済みのため、仮登録者向けAPIは利用不可
+ * - 403: 本登録済み。続けて GET /api/user/me の onboarding を確認する
  */
 async function getAuthState(request: NextRequest): Promise<AuthState> {
   if (!request.cookies.has(SESSION_COOKIE_NAME)) {
@@ -42,7 +54,25 @@ async function getAuthState(request: NextRequest): Promise<AuthState> {
       return "unauthenticated";
     }
     if (response.status === 403) {
-      return "registered";
+      const userResponse = await fetch(`${apiOrigin}/api/user/me`, {
+        headers: {
+          accept: "application/json",
+          cookie: request.headers.get("cookie") || "",
+        },
+        cache: "no-store",
+      });
+
+      if (userResponse.status === 401) {
+        return "unauthenticated";
+      }
+      if (!userResponse.ok) {
+        return "unknown";
+      }
+
+      const user = (await userResponse.json()) as UserMeResponse;
+      return user.onboarding?.credentialConfigured
+        ? "registered"
+        : "registered-without-credential";
     }
 
     return "unknown";
@@ -75,8 +105,14 @@ export async function proxy(request: NextRequest) {
       : redirectTo(request, ONBOARDING_PATH);
   }
 
+  if (authState === "registered-without-credential") {
+    return pathname === CREDENTIAL_PATH
+      ? NextResponse.next()
+      : redirectTo(request, CREDENTIAL_PATH);
+  }
+
   if (authState === "registered") {
-    return pathname.startsWith(HOME_PATH)
+    return pathname.startsWith(HOME_PATH) || pathname === CREDENTIAL_PATH
       ? NextResponse.next()
       : redirectTo(request, HOME_PATH);
   }
@@ -85,5 +121,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/onboarding", "/home/:path*"],
+  matcher: ["/login", "/onboarding/:path*", "/home/:path*"],
 };
