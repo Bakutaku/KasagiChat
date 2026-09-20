@@ -6,6 +6,8 @@ import ConversationShell from "@/features/conversation/conversation-shell";
 import ConversationView from "@/features/conversation/conversation-view";
 import type { ConversationDisplaySettings } from "@/features/conversation/presentation";
 import type { Conversation, ReviewResult } from "@/features/conversation/types";
+import type { FailedConversationMessage } from "@/features/conversation/use-conversation";
+
 import { BIRTH_MAX_TURNS } from "@/features/npc/constants";
 import { presetImagePath } from "@/features/npc/presets";
 import type { Npc } from "@/features/npc/types";
@@ -22,6 +24,8 @@ export default function NpcConversation({
   draft,
   onDraftChange,
   onSend,
+  failedMessage,
+  onRetrySend,
   onReview,
   isSending,
   isReviewing,
@@ -36,6 +40,8 @@ export default function NpcConversation({
   draft: string;
   onDraftChange: (value: string) => void;
   onSend: () => void;
+  failedMessage: FailedConversationMessage | null;
+  onRetrySend: () => void;
   onReview: () => void;
   isSending: boolean;
   isReviewing: boolean;
@@ -85,6 +91,8 @@ export default function NpcConversation({
           draft={draft}
           onDraftChange={onDraftChange}
           onSend={onSend}
+          failedMessage={failedMessage}
+          onRetrySend={onRetrySend}
           isSending={isSending}
           canSend={canSend}
           isFinished={isFinished}
@@ -104,7 +112,7 @@ export default function NpcConversation({
                   className="btn btn-primary shrink-0"
                   type="button"
                   onClick={displaySettings.onFinish}
-                  disabled={isReviewing || isSending}
+                  disabled={isReviewing || isSending || !!failedMessage}
                 >
                   {isReviewing ? (
                     <LuLoaderCircle className="animate-spin" aria-hidden="true" />

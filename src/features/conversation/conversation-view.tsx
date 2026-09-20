@@ -3,9 +3,15 @@
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import type { SubmitEvent } from "react";
-import { LuCircleAlert, LuLoaderCircle, LuSend } from "react-icons/lu";
+import {
+  LuCircleAlert,
+  LuLoaderCircle,
+  LuRotateCcw,
+  LuSend,
+} from "react-icons/lu";
 import { MAX_MESSAGE_LENGTH } from "./constants";
 import type { ConversationMessage } from "./types";
+import type { FailedConversationMessage } from "./use-conversation";
 
 /**
  * 会話の表示部分(メッセージ一覧・入力欄・末尾スクロール)。
@@ -21,6 +27,9 @@ export type ConversationViewProps = {
   onDraftChange: (value: string) => void;
   /** 送信要求。useConversation の send をそのまま渡せる。 */
   onSend: () => void;
+  /** 送信に失敗したメッセージと、その再送操作。 */
+  failedMessage: FailedConversationMessage | null;
+  onRetrySend: () => void;
   isSending: boolean;
   canSend: boolean;
   /** 会話が締めくくられているか。true なら入力欄を出さない。 */
@@ -38,6 +47,8 @@ export default function ConversationView({
   draft,
   onDraftChange,
   onSend,
+  failedMessage,
+  onRetrySend,
   isSending,
   canSend,
   isFinished,
@@ -82,6 +93,29 @@ export default function ConversationView({
                 >
                   {message.text}
                 </div>
+                {failedMessage?.index === index && (
+                  <div className="chat-footer mt-2 flex max-w-sm flex-col items-end gap-2 text-error">
+                    <span className="text-xs" role="alert">
+                      {failedMessage.error}
+                    </span>
+                    <button
+                      className="btn btn-error btn-outline btn-sm"
+                      type="button"
+                      onClick={onRetrySend}
+                      disabled={isSending}
+                    >
+                      {isSending ? (
+                        <LuLoaderCircle
+                          className="animate-spin"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <LuRotateCcw aria-hidden="true" />
+                      )}
+                      {isSending ? "再送中…" : "再送する"}
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -107,7 +141,7 @@ export default function ConversationView({
       {/* 右パネル下部: エラー / 入力フォーム / 追加操作 */}
       <div className="shrink-0 border-t border-base-300/80 bg-base-100/75 px-4 py-4 backdrop-blur-md sm:px-6">
         <div className="mx-auto w-full max-w-3xl">
-          {error && (
+          {error && !failedMessage && (
             <div className="alert alert-error mb-3" role="alert">
               <LuCircleAlert className="size-5 shrink-0" aria-hidden="true" />
               <span>{error}</span>
@@ -125,7 +159,7 @@ export default function ConversationView({
                   placeholder={`${assistantName}に返事をする`}
                   maxLength={MAX_MESSAGE_LENGTH}
                   rows={2}
-                  disabled={isSending || isInputLocked}
+                  disabled={isSending || isInputLocked || !!failedMessage}
                 />
               </label>
               <button

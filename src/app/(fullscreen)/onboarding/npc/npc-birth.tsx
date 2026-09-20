@@ -122,6 +122,8 @@ export default function NpcBirth() {
         draft={conversation.draft}
         onDraftChange={conversation.setDraft}
         onSend={conversation.send}
+        failedMessage={conversation.failedMessage}
+        onRetrySend={conversation.retrySend}
         onReview={handleReview}
         isSending={conversation.isSending}
         isReviewing={conversation.isReviewing}
@@ -146,6 +148,8 @@ export default function NpcBirth() {
       draft={conversation.draft}
       onDraftChange={conversation.setDraft}
       onSend={conversation.send}
+      failedMessage={conversation.failedMessage}
+      onRetrySend={conversation.retrySend}
       onReview={handleReview}
       isSending={conversation.isSending}
       isReviewing={conversation.isReviewing}

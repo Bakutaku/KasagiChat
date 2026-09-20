@@ -45,7 +45,7 @@ export type UseConversationOptions = {
 
 export type UseConversationResult = {
   conversation: Conversation | null;
-  /** 入力中の返信文。送信に成功すると空になる。 */
+  /** 入力中の返信文。送信を開始すると空になる。 */
   draft: string;
   setDraft: (value: string) => void;
   isStarting: boolean;
@@ -67,8 +67,25 @@ export type UseConversationResult = {
   start: (signal?: AbortSignal) => Promise<Conversation>;
   /** draft を送信する。送信できたら true。 */
   send: () => Promise<boolean>;
+  /** 送信に失敗し、再送を待っているメッセージ。 */
+  failedMessage: FailedConversationMessage | null;
+  /** failedMessage を同じターンとして再送する。成功したら true。 */
+  retrySend: () => Promise<boolean>;
   /** 振り返りを実行する。失敗時は null。 */
   review: () => Promise<ReviewResult | null>;
+};
+
+export type FailedConversationMessage = {
+  /** conversation.messages 内の、送信に失敗したユーザーメッセージの位置。 */
+  index: number;
+  /** 該当メッセージの直下に表示するエラー文言。 */
+  error: string;
+};
+
+type RetryableMessage = FailedConversationMessage & {
+  conversationId: string;
+  text: string;
+  expectedTurn: number;
 };
 
 export function useConversation({
@@ -83,6 +100,10 @@ export function useConversation({
   const [isSending, setIsSending] = useState(false);
   const [isReviewing, setIsReviewing] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [failedMessage, setFailedMessage] =
+    useState<RetryableMessage | null>(null);
+  // stateの再描画を待たずに二重送信を防ぐ。
+  const isSendingRef = useRef(false);
 
   // 文言の差し込みは呼び出し側で毎回新しいオブジェクトになり得るため、
   // useCallback の依存から外して ref 経由で読む(start の同一性を保つため)。
@@ -108,6 +129,7 @@ export function useConversation({
         // 開始レスポンスにも全文が入るが、再開時の取りこぼしを避けるため最新を取り直す。
         const current = await conversationApi.get(started.id, signal);
         setConversation(current);
+        setFailedMessage(null);
         return current;
       } catch (error) {
         setActionError(toMessage(error));
@@ -146,56 +168,123 @@ export function useConversation({
     [toMessage],
   );
 
+  const sendMessage = useCallback(
+    async (message: Omit<RetryableMessage, "error">) => {
+      if (isSendingRef.current) {
+        return false;
+      }
+
+      isSendingRef.current = true;
+      setIsSending(true);
+      setActionError(null);
+
+      try {
+        const response = await conversationApi.send(
+          message.conversationId,
+          message.text,
+          message.expectedTurn,
+        );
+        // ユーザー発言は送信開始時に追加済みなので、成功時は相手の返答だけを追記する。
+        setConversation((current) => {
+          if (!current || current.id !== message.conversationId) {
+            return current;
+          }
+
+          return {
+            ...current,
+            turn: response.turn,
+            canFinish: response.canFinish,
+            status: response.finished ? "FINISHED" : current.status,
+            messages: [...current.messages, response.reply],
+          };
+        });
+        setFailedMessage(null);
+        return true;
+      } catch (error) {
+        if (
+          error instanceof ApiError &&
+          error.code &&
+          RESYNC_CODES.includes(error.code)
+        ) {
+          // ターンずれや終了済みの場合、未保存の楽観メッセージを除いてから
+          // サーバーの最新状態で置き換える。再取得失敗時にも未保存分は残さない。
+          setConversation((current) => {
+            if (!current || current.id !== message.conversationId) {
+              return current;
+            }
+
+            return {
+              ...current,
+              messages: current.messages.slice(0, message.index),
+            };
+          });
+          setFailedMessage(null);
+          await resync(message.conversationId, error);
+        } else {
+          const errorMessage = toMessage(error);
+          setFailedMessage({ ...message, error: errorMessage });
+          setActionError(errorMessage);
+        }
+        return false;
+      } finally {
+        isSendingRef.current = false;
+        setIsSending(false);
+      }
+    },
+    [resync, toMessage],
+  );
+
   const send = useCallback(async () => {
     const text = draft.trim();
 
     if (
       !conversation ||
       !text ||
-      isSending ||
+      isSendingRef.current ||
+      failedMessage ||
       conversation.status !== "IN_PROGRESS"
     ) {
       return false;
     }
 
-    setIsSending(true);
-    setActionError(null);
+    const message = {
+      conversationId: conversation.id,
+      text,
+      expectedTurn: conversation.turn,
+      index: conversation.messages.length,
+    };
 
-    try {
-      const response = await conversationApi.send(
-        conversation.id,
-        text,
-        conversation.turn,
-      );
-      // 送信文とNPCの返答をローカルへ追記する(再取得はしない)。
-      // 成功した往復だけがサーバーに保存されるため、楽観表示の巻き戻しは不要。
-      setConversation({
-        ...conversation,
-        turn: response.turn,
-        canFinish: response.canFinish,
-        status: response.finished ? "FINISHED" : conversation.status,
-        messages: [
-          ...conversation.messages,
-          { role: "USER", text },
-          response.reply,
-        ],
-      });
-      setDraft("");
-      return true;
-    } catch (error) {
-      if (error instanceof ApiError && error.code && RESYNC_CODES.includes(error.code)) {
-        await resync(conversation.id, error);
-      } else {
-        setActionError(toMessage(error));
-      }
+    // 入力内容を先に吹き出しへ移し、相手の返答待ちをすぐ表示できるようにする。
+    setConversation({
+      ...conversation,
+      messages: [...conversation.messages, { role: "USER", text }],
+    });
+    setDraft("");
+
+    return sendMessage(message);
+  }, [conversation, draft, failedMessage, sendMessage]);
+
+  const retrySend = useCallback(async () => {
+    if (
+      !conversation ||
+      !failedMessage ||
+      isSendingRef.current ||
+      conversation.id !== failedMessage.conversationId ||
+      conversation.status !== "IN_PROGRESS"
+    ) {
       return false;
-    } finally {
-      setIsSending(false);
     }
-  }, [conversation, draft, isSending, resync, toMessage]);
+
+    return sendMessage({
+      conversationId: failedMessage.conversationId,
+      text: failedMessage.text,
+      expectedTurn: failedMessage.expectedTurn,
+      index: failedMessage.index,
+    });
+  }, [conversation, failedMessage, sendMessage]);
 
   const review = useCallback(async () => {
-    if (!conversation || !conversation.canFinish || isReviewing) {
+    if (!conversation || !conversation.canFinish || isReviewing || failedMessage) {
       return null;
     }
 
@@ -213,7 +302,7 @@ export function useConversation({
     } finally {
       setIsReviewing(false);
     }
-  }, [conversation, isReviewing, onReviewed, toMessage]);
+  }, [conversation, failedMessage, isReviewing, onReviewed, toMessage]);
 
   const isFinished = conversation !== null && conversation.status !== "IN_PROGRESS";
 
@@ -227,9 +316,12 @@ export function useConversation({
     actionError,
     clearActionError,
     isFinished,
-    canSend: !isFinished && !isSending && draft.trim().length > 0,
+    canSend:
+      !isFinished && !isSending && !failedMessage && draft.trim().length > 0,
     start,
     send,
+    failedMessage,
+    retrySend,
     review,
   };
 }
