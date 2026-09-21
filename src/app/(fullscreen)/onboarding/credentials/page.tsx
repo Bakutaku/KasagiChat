@@ -32,7 +32,7 @@ export default function CredentialSettingsPage() {
         >
           <KasagiLogo width={50} height={50} />
           <span>
-            Kasagi<span className="text-primary">Chat</span>
+            Kasagi<span className="text-[#00BBA7]">Chat</span>
           </span>
         </Link>
 

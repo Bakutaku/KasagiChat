@@ -9,6 +9,12 @@
     night;
 }
 
+:root,
+[data-theme] {
+  --color-primary: #007d72;
+  --color-primary-content: #fff;
+}
+
 html,
 body {
   min-height: 100%;

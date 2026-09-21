@@ -1,6 +1,6 @@
 .shell {
-  --color-primary: light-dark(#646294, #bab4ec);
-  --color-primary-content: light-dark(#fff, #24223b);
+  --color-primary: #007d72;
+  --color-primary-content: #fff;
   font-family:
     Arial, "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo,
     sans-serif;
