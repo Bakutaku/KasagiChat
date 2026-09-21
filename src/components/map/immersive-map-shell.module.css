@@ -1,0 +1,48 @@
+.shell {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--color-base-200);
+}
+
+.header {
+  position: absolute;
+  inset: max(0.75rem, env(safe-area-inset-top)) 1rem auto;
+  z-index: 50;
+  width: auto;
+  min-height: 4rem;
+  border: 1px solid
+    color-mix(in oklab, var(--color-base-content) 12%, transparent);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-base-100) 82%, transparent);
+  padding-inline: 1rem;
+  box-shadow: 0 6px 24px #00000012;
+  backdrop-filter: blur(16px);
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.hud {
+  position: absolute;
+  z-index: 10;
+  inset: auto max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  pointer-events: none;
+}
+
+.hud > * {
+  pointer-events: auto;
+}
+
+@media (width < 768px) {
+  .header {
+    inset-inline: 0.5rem;
+    padding-inline: 0.5rem;
+    min-height: 3.5rem;
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "id": "home-interior",
+  "name": "家",
+  "description": "木の床と小さな休憩スペースのある家。",
+  "size": { "columns": 8, "rows": 7 },
+  "floor": {
+    "legend": {
+      "O": { "sprite": "oak", "spawnAllowed": true },
+      "C": { "sprite": "carpet", "spawnAllowed": true },
+      "L": { "sprite": "limestone", "spawnAllowed": true }
+    },
+    "rows": [
+      "OOOOOOOO",
+      "OOOOOOOO",
+      "OOCCCCOO",
+      "OOCCCCOO",
+      "OOCCCCOO",
+      "OOOOOOOO",
+      "OOLLLLOO"
+    ]
+  },
+  "entities": [
+    {
+      "id": "bench",
+      "sprite": "bench",
+      "column": 2,
+      "row": 2,
+      "width": 104,
+      "height": 69
+    },
+    {
+      "id": "planter",
+      "sprite": "planter",
+      "column": 6,
+      "row": 1,
+      "width": 102,
+      "height": 68
+    },
+    {
+      "id": "lamp",
+      "sprite": "lamp",
+      "column": 1,
+      "row": 1,
+      "width": 54,
+      "height": 92
+    }
+  ],
+  "spots": []
+}

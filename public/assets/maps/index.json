@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "maps": [
+    { "id": "home-interior", "file": "home-interior.json" },
+    { "id": "hoshikawa-town", "file": "hoshikawa-town.json" },
+    { "id": "komorebi-lounge", "file": "komorebi-lounge.json" }
+  ]
+}

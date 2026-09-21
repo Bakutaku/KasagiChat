@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "id": "komorebi-lounge",
+  "name": "こもれびラウンジ",
+  "description": "木のぬくもりに包まれて、ゆっくり話せるラウンジ。",
+  "size": {
+    "columns": 12,
+    "rows": 10
+  },
+  "floor": {
+    "legend": {
+      "O": {
+        "sprite": "oak",
+        "spawnAllowed": true
+      },
+      "C": {
+        "sprite": "carpet",
+        "spawnAllowed": true
+      },
+      "L": {
+        "sprite": "limestone",
+        "spawnAllowed": true
+      }
+    },
+    "rows": [
+      "OOOOOOOOOLLL",
+      "OOOOOOOOOLLL",
+      "OOOOOOOOOLLL",
+      "OOOCCCCCOLLL",
+      "OOOCCCCCOLLL",
+      "OOOCCCCCOLLL",
+      "OOOCCCCCOLLL",
+      "OOOOOOOOOLLL",
+      "OOOOOOOOOLLL",
+      "OOOOOOOOOLLL"
+    ]
+  },
+  "entities": [],
+  "spots": []
+}
