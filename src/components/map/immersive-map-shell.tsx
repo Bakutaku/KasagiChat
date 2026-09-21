@@ -30,6 +30,9 @@ export type ImmersiveMapShellProps = {
   onSelect?: (spot: MapSpot | null) => void;
   /** HUDの内容・遷移先は画面側が所有します。ボタン等には通常のDOMを渡します。 */
   children?: ReactNode;
+  /** 家など、画面固有の構成で表示領域だけを調整するための差し込み口。 */
+  canvasClassName?: string;
+  hudClassName?: string;
 };
 
 function MapLoading() {
@@ -111,6 +114,8 @@ function LoadedMap({
 export function ImmersiveMapShell({
   children,
   paused = false,
+  canvasClassName = "",
+  hudClassName = "",
   ...props
 }: ImmersiveMapShellProps) {
   const [attempt, setAttempt] = useState(0);
@@ -123,7 +128,7 @@ export function ImmersiveMapShell({
         {isMapSceneId(props.mapId) ? mapRegistry[props.mapId].label : "マップ"}
       </h1>
       <div
-        className={styles.canvas}
+        className={`${styles.canvas} ${canvasClassName}`}
         inert={stopped}
         style={{
           pointerEvents: stopped ? "none" : "auto",
@@ -137,7 +142,7 @@ export function ImmersiveMapShell({
           <LoadedMap {...props} paused={stopped} />
         </MapErrorBoundary>
       </div>
-      <div className={styles.hud}>{children}</div>
+      <div className={`${styles.hud} ${hudClassName}`}>{children}</div>
     </main>
   );
 }
