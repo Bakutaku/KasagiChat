@@ -169,6 +169,13 @@
   font-size: 0.65rem;
 }
 
+.cardsPanel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;

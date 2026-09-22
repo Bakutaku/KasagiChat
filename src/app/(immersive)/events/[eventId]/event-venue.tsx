@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   LuCalendarDays,
+  LuMail,
+  LuMailOpen,
   LuMap,
   LuMapPin,
   LuSparkles,
@@ -14,6 +16,8 @@ import {
 
 import ErrorAlert from "@/components/feedback/error-alert";
 import { ImmersiveMapShell } from "@/components/map";
+import { cardApi } from "@/features/cards/api";
+import type { Card } from "@/features/cards/types";
 import { eventApi } from "@/features/events/api";
 import {
   eventMapCharacters,
@@ -31,7 +35,11 @@ import { isAbortError } from "@/lib/api/client";
 import { getErrorMessage } from "@/lib/api/errors";
 import styles from "./event-venue.module.css";
 
-type Venue = { event: KasagiEvent; participants: EventParticipant[] };
+type Venue = {
+  event: KasagiEvent;
+  participants: EventParticipant[];
+  cards: Card[];
+};
 
 /**
  * 会場の状態は画面が所有し、共通Canvasへはキャラクターの配列だけを渡す。
@@ -48,10 +56,11 @@ export function EventVenue({ eventId }: { eventId: string }) {
     Promise.all([
       eventApi.get(eventId, controller.signal),
       eventApi.participants(eventId, controller.signal),
+      cardApi.listByEvent(eventId, controller.signal),
     ]).then(
-      ([event, participants]) => {
+      ([event, participants, cards]) => {
         if (controller.signal.aborted) return;
-        setVenue({ event, participants });
+        setVenue({ event, participants, cards });
         setError(null);
       },
       (failure: unknown) => {
@@ -98,6 +107,7 @@ export function EventVenue({ eventId }: { eventId: string }) {
   const mapId = venueMapId(venue.event.venueTemplate);
   const hidden = hiddenParticipantCount(venue.participants, mapId);
   const characters = eventMapCharacters(venue.participants, mapId);
+  const unopenedCardCount = venue.cards.filter((card) => !card.opened).length;
   const atmosphere =
     venue.event.phase === "ONGOING"
       ? "会場ではゆったり交流が続いています"
@@ -177,6 +187,35 @@ export function EventVenue({ eventId }: { eventId: string }) {
                 </span>
               </span>
             </div>
+
+            <div className={styles.cardsPanel}>
+              {venue.cards.length === 0 ? (
+                <span className={styles.attendeeHint}>
+                  まだカードは届いていません
+                </span>
+              ) : (
+                <>
+                  <span className="badge badge-primary badge-sm gap-1">
+                    <LuMail aria-hidden="true" />
+                    カード{venue.cards.length}枚
+                  </span>
+                  {unopenedCardCount > 0 && (
+                    <span className="badge badge-outline badge-sm gap-1">
+                      <LuMailOpen aria-hidden="true" />
+                      未開封{unopenedCardCount}枚
+                    </span>
+                  )}
+                  <Link
+                    href={`/cards?eventId=${venue.event.id}`}
+                    className="btn btn-primary btn-sm"
+                  >
+                    <LuMail aria-hidden="true" />
+                    カードを見る
+                  </Link>
+                </>
+              )}
+            </div>
+
             <nav className={styles.actions} aria-label="イベント会場の移動">
               <Link href="/events" className="btn btn-ghost btn-sm">
                 <LuTicket aria-hidden="true" />
