@@ -7,7 +7,21 @@
 - `public/assets/maps/hoshikawa-town.json`: 草は淡いセージ、道は砂色、石畳はアイボリー、川は淡い青緑。既存のテクスチャを残し、色の強さを抑えています。
 - `floor.legend.*.tone = { color: "#RRGGBB", mix: 0〜1 }`: 画像の上へ指定色を混ぜる任意設定。既存の`color`は従来どおり乗算です。明度を上げる調整には`tone`を使います。指定がない家・会場の床は従来どおりです。
 - `map-layers.tsx`: 調色は元画像のコピーに対して行い、素材と調色設定の組ごとにテクスチャを共有。描画終了時に破棄します。元PNGやロード済み画像を書き換えません。
-- 花壇・プランター・川沿いのベンチ・街灯・木を計8点追加し、北側の建物前に石畳を追加。5つのスポットと橋・川の配置は維持しました。新規画像生成は不要と判断し、既存素材のみを使用しています。
+- 花壇・プランター・川沿いのベンチ・街灯・木を計8点追加し、北側の建物前に石畳を追加。5つのスポットと橋・川の配置は維持しました。
+
+## マップ画像の再作成
+
+2026-09-22、元画像の端に建物・樹木・別オブジェクトの断片が接していたため、内蔵 `image_gen` で街マップの12素材を再作成しました。
+
+- 対象: `lobby`、`office`、`cafe`、`home`、`bridge`、`fountain`、`tree`、`bench`、`lamp`、`planter`、`flowerbed`、`fence`。
+- 出力はすべて384×256のRGBA PNG。生成画像をアスペクト比を保って縮小・中央配置し、低アルファの光彩を除いて四周を完全透過にしました。
+- `hoshikawa-town.json` の全置物に `trimTransparent: true` を指定。安全な透明余白を素材側に残しつつ、描画時は可視範囲を既存の `width` / `height` 内へ収めます。
+
+共通プロンプト:
+
+> Use case: precise-object-edit. Asset type: transparent PNG sprite for the KasagiChat isometric town map. Recreate the same intended building or prop from the reference in cozy finely shaded isometric pixel art. Center one complete object with a clearly transparent safety margin on every side. Remove clipped neighboring fragments, stray colored pixels, colored outlines, halos, glow, and edge artifacts. No visible pixel may touch the canvas boundary. Truly transparent RGBA background; no floor tile, scene background, extra object, text, logo, UI, border, checkerboard, or watermark. Crisp readable silhouette at small game-map size.
+
+各画像では上記に、元素材の建物・家具・植栽・色・視点を維持する対象説明と、「屋根、煙突、脚、支柱、花先など対象全体を表示する」という制約を加えました。
 
 ## 選択・ホバー・会話の境界
 

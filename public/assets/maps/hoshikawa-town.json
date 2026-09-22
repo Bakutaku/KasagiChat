@@ -63,6 +63,7 @@
       "row": 1,
       "width": 224,
       "height": 149,
+      "trimTransparent": true,
       "offsetY": -8
     },
     {
@@ -72,6 +73,7 @@
       "row": 1,
       "width": 210,
       "height": 140,
+      "trimTransparent": true,
       "offsetY": -8
     },
     {
@@ -81,6 +83,7 @@
       "row": 8,
       "width": 205,
       "height": 137,
+      "trimTransparent": true,
       "offsetY": -7
     },
     {
@@ -90,6 +93,7 @@
       "row": 8,
       "width": 205,
       "height": 137,
+      "trimTransparent": true,
       "offsetY": -7
     },
     {
@@ -99,6 +103,7 @@
       "row": 4.5,
       "width": 154,
       "height": 103,
+      "trimTransparent": true,
       "offsetY": 3
     },
     {
@@ -108,6 +113,7 @@
       "row": 8,
       "width": 145,
       "height": 97,
+      "trimTransparent": true,
       "offsetY": 4
     },
     {
@@ -116,7 +122,8 @@
       "column": 0,
       "row": 3,
       "width": 116,
-      "height": 124
+      "height": 124,
+      "trimTransparent": true
     },
     {
       "id": "tree-b",
@@ -124,7 +131,8 @@
       "column": 10,
       "row": 6,
       "width": 104,
-      "height": 111
+      "height": 111,
+      "trimTransparent": true
     },
     {
       "id": "tree-c",
@@ -132,7 +140,8 @@
       "column": 2,
       "row": 9,
       "width": 96,
-      "height": 102
+      "height": 102,
+      "trimTransparent": true
     },
     {
       "id": "bench-a",
@@ -141,6 +150,7 @@
       "row": 8,
       "width": 104,
       "height": 69,
+      "trimTransparent": true,
       "offsetY": 4
     },
     {
@@ -150,6 +160,7 @@
       "row": 8,
       "width": 104,
       "height": 69,
+      "trimTransparent": true,
       "offsetY": 4
     },
     {
@@ -158,7 +169,8 @@
       "column": 4,
       "row": 6,
       "width": 54,
-      "height": 92
+      "height": 92,
+      "trimTransparent": true
     },
     {
       "id": "lamp-b",
@@ -166,7 +178,8 @@
       "column": 7,
       "row": 6,
       "width": 54,
-      "height": 92
+      "height": 92,
+      "trimTransparent": true
     },
     {
       "id": "planter-a",
@@ -174,7 +187,8 @@
       "column": 3,
       "row": 7,
       "width": 102,
-      "height": 68
+      "height": 68,
+      "trimTransparent": true
     },
     {
       "id": "flowerbed-a",
@@ -182,7 +196,8 @@
       "column": 9,
       "row": 7,
       "width": 96,
-      "height": 64
+      "height": 64,
+      "trimTransparent": true
     },
     {
       "id": "fence-a",
@@ -190,7 +205,8 @@
       "column": 1,
       "row": 2,
       "width": 108,
-      "height": 72
+      "height": 72,
+      "trimTransparent": true
     },
     {
       "id": "fence-b",
@@ -198,7 +214,8 @@
       "column": 10,
       "row": 2,
       "width": 108,
-      "height": 72
+      "height": 72,
+      "trimTransparent": true
     },
     {
       "id": "tree-north",
@@ -206,7 +223,8 @@
       "column": 0.4,
       "row": 0.3,
       "width": 90,
-      "height": 96
+      "height": 96,
+      "trimTransparent": true
     },
     {
       "id": "tree-riverside",
@@ -214,7 +232,8 @@
       "column": 11,
       "row": 3,
       "width": 100,
-      "height": 107
+      "height": 107,
+      "trimTransparent": true
     },
     {
       "id": "flowers-lobby",
@@ -222,7 +241,8 @@
       "column": 3.7,
       "row": 0.5,
       "width": 74,
-      "height": 49
+      "height": 49,
+      "trimTransparent": true
     },
     {
       "id": "flowers-office",
@@ -230,7 +250,8 @@
       "column": 7.1,
       "row": 0.6,
       "width": 72,
-      "height": 48
+      "height": 48,
+      "trimTransparent": true
     },
     {
       "id": "bench-riverside",
@@ -238,7 +259,8 @@
       "column": 2.7,
       "row": 3.2,
       "width": 88,
-      "height": 59
+      "height": 59,
+      "trimTransparent": true
     },
     {
       "id": "lamp-riverside",
@@ -246,7 +268,8 @@
       "column": 4.1,
       "row": 3,
       "width": 42,
-      "height": 72
+      "height": 72,
+      "trimTransparent": true
     },
     {
       "id": "planter-cafe",
@@ -254,7 +277,8 @@
       "column": 0.4,
       "row": 6.5,
       "width": 68,
-      "height": 45
+      "height": 45,
+      "trimTransparent": true
     },
     {
       "id": "flowers-square",
@@ -262,7 +286,8 @@
       "column": 6,
       "row": 9,
       "width": 78,
-      "height": 52
+      "height": 52,
+      "trimTransparent": true
     }
   ],
   "spots": [
