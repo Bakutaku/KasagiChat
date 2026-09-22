@@ -18,6 +18,7 @@ import type {
   RuntimeMapCharacter,
   RuntimeMapObject,
   MapObjectEditing,
+  MapHover,
 } from "./map-types";
 
 export type MapCanvasProps = {
@@ -28,6 +29,8 @@ export type MapCanvasProps = {
   objects?: readonly RuntimeMapObject[];
   objectEditing?: MapObjectEditing;
   onSelect?: (spot: MapSpot | null) => void;
+  onSelectCharacter?: (character: RuntimeMapCharacter) => void;
+  onHover?: (hover: MapHover | null) => void;
   onError: (error: Error) => void;
 };
 
@@ -76,6 +79,8 @@ function Scene({
   objects,
   objectEditing,
   onSelect,
+  onSelectCharacter,
+  onHover,
   onError,
 }: MapCanvasProps) {
   return (
@@ -100,8 +105,8 @@ function Scene({
           touches={{ ONE: TOUCH.PAN, TWO: TOUCH.DOLLY_PAN }}
         />
       )}
-      {interaction === "explore" && !paused && (
-        <MapInput spots={document.spots} onSelect={onSelect} />
+      {!paused && (document.spots.length > 0 || characters.length > 0) && (
+        <MapInput spots={document.spots} characters={characters} onSelect={onSelect} onSelectCharacter={onSelectCharacter} onHover={onHover} />
       )}
       <GroundLayer document={document} />
       <MapRoomLayer size={document.size} room={document.room} />
@@ -140,6 +145,8 @@ function Scene({
                   1001 + Math.round((character.column + character.row) * 100)
                 }
                 character
+                characterId={character.id}
+                trimTransparent
               />
               <Html
                 position={[position[0], 1.4, position[2]]}

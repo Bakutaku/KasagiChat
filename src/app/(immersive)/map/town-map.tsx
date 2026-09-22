@@ -2,24 +2,26 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { LuHouse } from "react-icons/lu";
-import { ImmersiveMapShell, type MapSpot } from "@/components/map";
+import { useEffect, useRef, useState } from "react";
+import { LuHouse, LuMapPin } from "react-icons/lu";
+import { ImmersiveMapShell } from "@/components/map";
 import ConversationSession from "@/features/conversation/conversation-session";
-import { sceneForSpotId } from "@/features/conversation/scene";
 import type { PracticeSceneKey } from "@/features/conversation/scene";
 import { npcApi } from "@/features/npc/api";
 import type { Npc } from "@/features/npc/types";
 import { isAbortError } from "@/lib/api/client";
 import { getErrorMessage } from "@/lib/api/errors";
+import { townCharacters, townSpotDetails, townVisit } from "@/features/town/town-map-presentation";
+import { TownVisitDialog } from "@/features/town/town-visit-dialog";
 
 /** 選択後の振る舞いは街画面が所有。共通Canvasへ遷移・会話の条件分岐を持ち込みません。 */
 export function TownMap() {
   const router = useRouter();
-  const [spot, setSpot] = useState<MapSpot | null>(null);
+  const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
   const [scene, setScene] = useState<PracticeSceneKey | null>(null);
   const [npc, setNpc] = useState<Npc | null>(null);
   const [npcError, setNpcError] = useState<string | null>(null);
+  const selectionOrigin = useRef<HTMLElement | null>(null);
 
   // 練習会話の見守り役として分身が要るため、街に入った時点で1度だけ取得する。
   useEffect(() => {
@@ -47,48 +49,42 @@ export function TownMap() {
     return () => controller.abort();
   }, []);
 
-  function handleSelect(selected: MapSpot | null) {
-    setSpot(selected);
-    if (!selected) {
-      return;
-    }
-
-    if (selected.id === "home") {
-      router.push("/home");
-      return;
-    }
-
-    const practiceScene = sceneForSpotId(selected.id);
-    // 練習シーンでないスポット(広場)は、選択表示だけで終わる。
-    if (practiceScene && npc) {
-      setScene(practiceScene);
-    }
+  const visit = selectedSpotId ? townVisit(selectedSpotId) : null;
+  function selectVisit(id: string | null) {
+    // 背景がinertになる前に記録し、キャンセル後のキーボード位置を保ちます。
+    selectionOrigin.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setSelectedSpotId(id);
   }
-
-  // 広場のようにまだ行き先のないスポットは、選択しても会話が開かない。
-  const hint = !spot
-    ? "星川の街"
-    : sceneForSpotId(spot.id)
-      ? `${spot.name}を選択中`
-      : `${spot.name}はまだ準備中です`;
+  function closeVisit() {
+    setSelectedSpotId(null);
+    requestAnimationFrame(() => selectionOrigin.current?.focus());
+  }
+  function confirmVisit() {
+    if (!visit || (visit.scene && !npc)) return;
+    if (visit.destination) router.push(visit.destination);
+    if (visit.scene && npc) setScene(visit.scene);
+    setSelectedSpotId(null);
+  }
 
   return (
     <>
       <ImmersiveMapShell
         mapId="hoshikawa-town"
         interaction="explore"
-        characters={[]}
-        paused={scene !== null}
-        onSelect={handleSelect}
+        characters={townCharacters}
+        spotDetails={townSpotDetails}
+        paused={scene !== null || visit !== null}
+        onSelect={(spot) => selectVisit(spot?.id ?? null)}
+        onSelectCharacter={(character) => selectVisit(character.id)}
       >
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-box border border-base-300 bg-base-100/85 p-3 backdrop-blur">
           <div>
-            <p className="font-medium" aria-live="polite">
-              {hint}
+            <p className="flex items-center gap-2 font-medium">
+              <LuMapPin className="text-primary" aria-hidden="true" />星川の街
             </p>
             <p className="text-xs opacity-70">
               {npcError ??
-                "ドラッグで移動・ホイール／ピンチで拡大・スポットを選択して会話"}
+                "ドラッグで移動・ホイール／ピンチで拡大。人や建物を選ぶと案内が開きます。"}
             </p>
           </div>
           <Link href="/home" className="btn btn-sm">
@@ -97,6 +93,10 @@ export function TownMap() {
           </Link>
         </div>
       </ImmersiveMapShell>
+
+      {visit && <TownVisitDialog visit={visit}
+        notice={visit.scene ? npcError ?? (!npc ? "分身の情報を読み込んでいます…" : null) : null}
+        onClose={closeVisit} onConfirm={confirmVisit} />}
 
       {scene && npc && (
         <ConversationSession

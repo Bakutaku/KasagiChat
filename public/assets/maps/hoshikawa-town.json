@@ -11,25 +11,41 @@
     "legend": {
       "G": {
         "sprite": "grass",
-        "spawnAllowed": true
+        "spawnAllowed": true,
+        "tone": {
+          "color": "#c5d5af",
+          "mix": 0.76
+        }
       },
       "S": {
         "sprite": "stone",
-        "spawnAllowed": true
+        "spawnAllowed": true,
+        "tone": {
+          "color": "#e4ddcc",
+          "mix": 0.6
+        }
       },
       "D": {
         "sprite": "dirt",
-        "spawnAllowed": true
+        "spawnAllowed": true,
+        "tone": {
+          "color": "#e4d1b0",
+          "mix": 0.65
+        }
       },
       "W": {
         "sprite": "water",
-        "spawnAllowed": false
+        "spawnAllowed": false,
+        "tone": {
+          "color": "#b5d9d7",
+          "mix": 0.68
+        }
       }
     },
     "rows": [
       "GGGGGDDGGGGG",
       "GGGGGDDGGGGG",
-      "GGGGGDDGGGGG",
+      "GGGSSDDSSGGG",
       "GGGGGDDGGGGG",
       "WWWWWWWWWWWW",
       "WWWWWWWWWWWW",
@@ -183,6 +199,70 @@
       "row": 2,
       "width": 108,
       "height": 72
+    },
+    {
+      "id": "tree-north",
+      "sprite": "tree",
+      "column": 0.4,
+      "row": 0.3,
+      "width": 90,
+      "height": 96
+    },
+    {
+      "id": "tree-riverside",
+      "sprite": "tree",
+      "column": 11,
+      "row": 3,
+      "width": 100,
+      "height": 107
+    },
+    {
+      "id": "flowers-lobby",
+      "sprite": "flowerbed",
+      "column": 3.7,
+      "row": 0.5,
+      "width": 74,
+      "height": 49
+    },
+    {
+      "id": "flowers-office",
+      "sprite": "planter",
+      "column": 7.1,
+      "row": 0.6,
+      "width": 72,
+      "height": 48
+    },
+    {
+      "id": "bench-riverside",
+      "sprite": "bench",
+      "column": 2.7,
+      "row": 3.2,
+      "width": 88,
+      "height": 59
+    },
+    {
+      "id": "lamp-riverside",
+      "sprite": "lamp",
+      "column": 4.1,
+      "row": 3,
+      "width": 42,
+      "height": 72
+    },
+    {
+      "id": "planter-cafe",
+      "sprite": "planter",
+      "column": 0.4,
+      "row": 6.5,
+      "width": 68,
+      "height": 45
+    },
+    {
+      "id": "flowers-square",
+      "sprite": "flowerbed",
+      "column": 6,
+      "row": 9,
+      "width": 78,
+      "height": 52
     }
   ],
   "spots": [

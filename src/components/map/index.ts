@@ -4,5 +4,5 @@ export {
   type ImmersiveMapShellProps,
 } from "./immersive-map-shell";
 export type { MapSceneId } from "./map-registry";
-export type { RuntimeMapCharacter, MapInteraction, MapSpot } from "./map-types";
+export type { RuntimeMapCharacter, MapInteraction, MapSpot, MapTargetDetails } from "./map-types";
 export type { RuntimeMapObject, MapObjectEditing } from "./map-types";

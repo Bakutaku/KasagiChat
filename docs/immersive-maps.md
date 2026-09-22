@@ -1,5 +1,7 @@
 # 全画面マップ基盤
 
+街の配色・人物表示・ホバー・会話開始前の確認UIの追加分は [town-map-interactions.md](town-map-interactions.md) を参照してください。以下は初期基盤の記録を含みます。
+
 この実装は背景と薄いHUDの基盤です。Home機能、イベントの取得・参加状態、会話、カード、保存ストアは含みません。`codex/prototype-screens` はマージせず、マップ素材・JSONの床と置物・床模様と座標変換の描画方法だけを参照しています。
 
 今回の指示に従い、描画はThree.js、768px未満もCanvas表示としています。`requirements.md` に残るPixiJS・PC限定の記述は更新していません。

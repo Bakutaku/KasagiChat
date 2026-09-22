@@ -141,6 +141,10 @@ export function parseMapDocument(
       sprite: style.sprite as FloorName,
       spawnAllowed: style.spawnAllowed,
       ...(style.color === undefined ? {} : { color: style.color as string }),
+      ...(style.tone === undefined ? {} : { tone: {
+        color: color(record(style.tone).color),
+        mix: number(record(style.tone).mix, 0, 1),
+      } }),
     });
   }
   const rows = array(floor.rows, size.rows);

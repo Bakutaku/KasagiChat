@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import { useLoader } from "@react-three/fiber";
 import {
   LinearFilter,
+  CanvasTexture,
   NearestFilter,
   SRGBColorSpace,
   TextureLoader,
@@ -17,7 +18,12 @@ import {
   floorNames,
   groundNames,
   type MapDocument,
+  type MapFloor,
 } from "./map-types";
+
+function floorKey(tile: MapFloor) {
+  return `${tile.sprite}:${tile.tone?.color ?? ""}:${tile.tone?.mix ?? ""}`;
+}
 
 export function GroundLayer({ document }: { document: MapDocument }) {
   const usedGround = useMemo(
@@ -46,6 +52,26 @@ export function GroundLayer({ document }: { document: MapDocument }) {
       )
         result.set(name, makeFloor(name));
     });
+    // 調色は凡例ごとに一度だけ行い、全タイルで同じテクスチャを共有します。
+    // 元画像やuseLoaderのキャッシュを書き換えず、室内の既存色も維持します。
+    document.ground.forEach((tile) => {
+      if (!tile.tone || result.has(floorKey(tile))) return;
+      const source = result.get(tile.sprite);
+      if (!source) return;
+      const canvas = window.document.createElement("canvas");
+      const image = source.image as HTMLImageElement | HTMLCanvasElement;
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const context = canvas.getContext("2d")!;
+      context.drawImage(image, 0, 0);
+      context.globalAlpha = tile.tone.mix;
+      context.fillStyle = tile.tone.color;
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      const texture = new CanvasTexture(canvas);
+      texture.colorSpace = SRGBColorSpace;
+      texture.magFilter = NearestFilter;
+      result.set(floorKey(tile), texture);
+    });
     return result;
   }, [document, sources, usedGround]);
   useEffect(
@@ -60,7 +86,7 @@ export function GroundLayer({ document }: { document: MapDocument }) {
     >
       <planeGeometry args={[1, 1]} />
       <meshBasicMaterial
-        map={textures.get(tile.sprite) ?? null}
+        map={textures.get(floorKey(tile)) ?? textures.get(tile.sprite) ?? null}
         color={
           tile.color ??
           (tile.sprite === "plain" ? floorColors.plain : "#ffffff")
@@ -77,6 +103,7 @@ export function ImageSprite({
   height,
   order,
   spotId,
+  characterId,
   character = false,
   trimTransparent = false,
 }: {
@@ -86,6 +113,7 @@ export function ImageSprite({
   height: number;
   order: number;
   spotId?: string;
+  characterId?: string;
   character?: boolean;
   trimTransparent?: boolean;
 }) {
@@ -121,7 +149,7 @@ export function ImageSprite({
       center={[0.5, 0]}
       scale={[fittedWidth, fittedHeight, 1]}
       renderOrder={order}
-      userData={{ spotId }}
+      userData={{ spotId, characterId }}
     >
       <spriteMaterial
         map={texture}

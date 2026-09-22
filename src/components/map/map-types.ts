@@ -40,6 +40,8 @@ export type MapRoom = {
 export type MapFloor = MapPoint & {
   sprite: FloorName;
   color?: string;
+  /** 元の模様へ淡い色を混ぜます。乗算のcolorと異なり、明度も上げられます。 */
+  tone?: { color: string; mix: number };
   spawnAllowed: boolean;
 };
 /** スポットには遷移先や会話ロジックを持たせず、画面側で選択結果を解釈します。 */
@@ -86,6 +88,19 @@ export type RuntimeMapCharacter = MapPoint & {
   id: string;
   src: string;
   name: string;
+  details?: MapTargetDetails;
+};
+/** 表示だけの補足情報。開始可否や会話処理は画面が所有します。 */
+export type MapTargetDetails = {
+  description: string;
+  status?: string;
+  actionLabel?: string;
+};
+export type MapHover = {
+  kind: "spot" | "character";
+  id: string;
+  x: number;
+  y: number;
 };
 export type MapInteraction = "fixed" | "explore";
 export const floorColors: Record<FloorName, string> = {

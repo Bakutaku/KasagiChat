@@ -5,6 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { NavigationHeader } from "@/components/layout/navigation-header";
 import { MapErrorBoundary } from "./map-error-boundary";
 import { loadMap } from "./map-loader";
+import { MapTargetOverlay } from "./map-target-overlay";
 import { isMapSceneId, mapRegistry, type MapSceneId } from "./map-registry";
 import type {
   MapDocument,
@@ -13,6 +14,8 @@ import type {
   RuntimeMapCharacter,
   RuntimeMapObject,
   MapObjectEditing,
+  MapHover,
+  MapTargetDetails,
 } from "./map-types";
 import styles from "./immersive-map-shell.module.css";
 
@@ -32,6 +35,8 @@ export type ImmersiveMapShellProps = {
   objects?: readonly RuntimeMapObject[];
   objectEditing?: MapObjectEditing;
   onSelect?: (spot: MapSpot | null) => void;
+  onSelectCharacter?: (character: RuntimeMapCharacter) => void;
+  spotDetails?: Readonly<Record<string, MapTargetDetails>>;
   /** HUDの内容・遷移先は画面側が所有します。ボタン等には通常のDOMを渡します。 */
   children?: ReactNode;
   /** 家など、画面固有の構成で表示領域だけを調整するための差し込み口。 */
@@ -59,9 +64,12 @@ function LoadedMap({
   objects,
   objectEditing,
   onSelect,
+  onSelectCharacter,
+  spotDetails,
 }: ImmersiveMapShellProps) {
   const [document, setDocument] = useState<MapDocument | null>(null);
   const [error, setError] = useState<Error | null>(null);
+  const [hover, setHover] = useState<MapHover | null>(null);
   useEffect(() => {
     const controller = new AbortController();
     loadMap(mapId, fetch, controller.signal).then(
@@ -91,25 +99,20 @@ function LoadedMap({
         objects={objects}
         objectEditing={objectEditing}
         onSelect={onSelect}
+        onSelectCharacter={onSelectCharacter}
+        onHover={setHover}
         onError={setError}
       />
-      {interaction === "explore" && !paused && (
-        <nav
-          aria-label="マップのスポット"
-          className="sr-only focus-within:not-sr-only focus-within:absolute focus-within:left-4 focus-within:top-24 focus-within:z-20 focus-within:flex focus-within:max-w-[calc(100%-2rem)] focus-within:flex-wrap focus-within:gap-2"
-        >
-          {document.spots.map((spot) => (
-            <button
-              key={spot.id}
-              type="button"
-              className="btn btn-sm"
-              onClick={() => onSelect?.(spot)}
-            >
-              {spot.name}
-            </button>
-          ))}
-        </nav>
-      )}
+      <MapTargetOverlay
+        document={document}
+        characters={characters}
+        spotDetails={spotDetails}
+        hover={hover}
+        paused={paused}
+        onHover={setHover}
+        onSelect={onSelect}
+        onSelectCharacter={onSelectCharacter}
+      />
     </>
   );
 }
