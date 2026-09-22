@@ -7,18 +7,17 @@
 
 /**
  * 会話の種別。
- * 現在バックエンドが受け付けるのは "BIRTH" だけで、それ以外は
+ * BIRTH(誕生) / PRACTICE(練習) / DAILY(今日のひとこと)。
+ * scene との組み合わせはサーバーが検証し、不正なら
  * 400 INVALID_CONVERSATION_REQUEST になります。
- * 将来 "PRACTICE"(練習) / "DAILY"(今日のひとこと)を足す想定の拡張点です。
  */
-export type ConversationType = "BIRTH";
+export type ConversationType = "BIRTH" | "PRACTICE" | "DAILY";
 
 /**
  * 会話のシーン。
- * 現在は null のみ受理されます。練習シーン(CAFE / LOBBY / OFFICE)が
- * 実装されたらここへ追加します。
+ * PRACTICE のときだけ指定し、BIRTH と DAILY では null です。
  */
-export type ConversationScene = null;
+export type ConversationScene = "CAFE" | "LOBBY" | "OFFICE" | null;
 
 export type MessageRole = "USER" | "ASSISTANT";
 
@@ -56,6 +55,26 @@ export type SendMessageResponse = {
   canFinish: boolean;
   /** 上限往復数に達して自動終了したか。true なら status は FINISHED。 */
   finished: boolean;
+};
+
+/**
+ * 会話一覧の1件。メッセージ本文は含まれないため、
+ * 開くときは通常どおり開始/再開APIで本文を取り直します。
+ */
+export type ConversationSummary = {
+  id: string;
+  type: ConversationType;
+  scene: ConversationScene;
+  status: ConversationStatus;
+  turn: number;
+  canFinish: boolean;
+  /** 会話を開始した日時(ISO 8601)。 */
+  startedAt: string;
+};
+
+/** 今日のひとことの質問。未生成のときはAPIが204を返します。 */
+export type DailyQuestion = {
+  question: string;
 };
 
 /** 振り返りで新しく覚えた話題。 */

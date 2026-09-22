@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { LuHouse, LuSparkles, LuStar, LuTrendingUp } from "react-icons/lu";
 import type { ReviewResult } from "./types";
 
@@ -6,6 +7,10 @@ export type ConversationResultPanelProps = {
   result: ReviewResult;
   actionLabel: string;
   onAction: () => void;
+  /** 見出し。既定はNPC誕生向けの文言。 */
+  headline?: string;
+  /** 操作ボタンのアイコン。既定は家のアイコン。 */
+  icon?: ReactNode;
 };
 
 /** 振り返り結果を会話シェルの右パネルへ表示する共通コンポーネント。 */
@@ -14,6 +19,8 @@ export default function ConversationResultPanel({
   result,
   actionLabel,
   onAction,
+  headline = "最初の思い出ができました",
+  icon = <LuHouse aria-hidden="true" />,
 }: ConversationResultPanelProps) {
   return (
     <div className="h-full overflow-y-auto p-5 sm:p-7">
@@ -26,7 +33,7 @@ export default function ConversationResultPanel({
             <p className="text-xs font-bold tracking-[0.14em] text-primary uppercase">
               Conversation complete
             </p>
-            <h2 className="mt-1 text-xl font-black">最初の思い出ができました</h2>
+            <h2 className="mt-1 text-xl font-black">{headline}</h2>
           </div>
         </div>
 
@@ -74,7 +81,7 @@ export default function ConversationResultPanel({
           type="button"
           onClick={onAction}
         >
-          <LuHouse aria-hidden="true" />
+          {icon}
           {actionLabel}
         </button>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ApiError } from "@/lib/api/client";
+import { ApiError, isAbortError } from "@/lib/api/client";
 import { getErrorMessage } from "@/lib/api/errors";
 import type { ErrorMessageOverrides } from "@/lib/api/errors";
 import { conversationApi } from "./api";
@@ -132,7 +132,12 @@ export function useConversation({
         setFailedMessage(null);
         return current;
       } catch (error) {
-        setActionError(toMessage(error));
+        // 中断(画面破棄・再読み込み・StrictModeの二重実行)は失敗ではない。
+        // ここで文言を出すと、実際には成功した再実行の裏で
+        // 「サーバーに接続できませんでした」が残ってしまう。
+        if (!isAbortError(error) && !signal?.aborted) {
+          setActionError(toMessage(error));
+        }
         throw error;
       } finally {
         // 中断済み(画面破棄・再読み込み)のときは状態を触らない。

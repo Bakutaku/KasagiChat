@@ -14,7 +14,6 @@ import {
 import {
   LuArchive,
   LuCircleAlert,
-  LuClock3,
   LuHouse,
   LuImageOff,
   LuInfo,
@@ -31,6 +30,13 @@ import { NavigationHeader } from "@/components/layout/navigation-header";
 import { ImmersiveMapShell } from "@/components/map";
 import { getErrorMessage } from "@/lib/api/errors";
 import { isAbortError } from "@/lib/api/client";
+import { conversationApi } from "@/features/conversation/api";
+import ConversationSession from "@/features/conversation/conversation-session";
+import { conversationLabel } from "@/features/conversation/scene";
+import type {
+  ConversationScene,
+  ConversationSummary,
+} from "@/features/conversation/types";
 import { presetImagePath } from "@/features/npc/presets";
 import { homeApi } from "./api";
 import type {
@@ -353,8 +359,111 @@ function SelectedItemPanel({
   );
 }
 
+/** 今日のひとこと。質問が用意できていないときは操作させない。 */
+function DailyQuestionCard({
+  question,
+  disabled,
+  onStart,
+}: {
+  question: string | null;
+  disabled: boolean;
+  onStart: () => void;
+}) {
+  return (
+    <section className="rounded-box border border-primary/25 bg-primary/5 p-3">
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 text-primary" aria-hidden="true">
+          <LuMessageCircle />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm font-bold">今日のひとこと</h3>
+          {question ? (
+            <>
+              <p className="mt-1 text-xs leading-relaxed text-base-content/75">
+                「{question}」
+              </p>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm mt-3 w-full"
+                onClick={onStart}
+                disabled={disabled}
+              >
+                話す
+              </button>
+            </>
+          ) : (
+            <p className="mt-1 text-xs leading-relaxed text-base-content/65">
+              今日の質問はまだありません。会話を振り返ると、次に聞きたいことが届きます。
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * 未振り返りの会話一覧。
+ *
+ * 進行中と終了済みは同じ一覧に出す。サーバーは種別とシーンで会話を再開するため、
+ * どちらも「続きから開く」という同じ操作になる。
+ */
+function UnreviewedCard({
+  conversations,
+  disabled,
+  onResume,
+}: {
+  conversations: ConversationSummary[];
+  disabled: boolean;
+  onResume: (conversation: ConversationSummary) => void;
+}) {
+  return (
+    <section className="rounded-box border border-base-300 bg-base-200/55 p-3">
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 text-base-content/55" aria-hidden="true">
+          <LuRefreshCw />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-bold">途中の会話・未振り返り</h3>
+            <span className="badge badge-ghost badge-sm">
+              {conversations.length}件
+            </span>
+          </div>
+          {conversations.length === 0 ? (
+            <p className="mt-1 text-xs leading-relaxed text-base-content/65">
+              振り返り待ちの会話はありません。
+            </p>
+          ) : (
+            <ul className="mt-2 space-y-2">
+              {conversations.map((conversation) => (
+                <li key={conversation.id}>
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm w-full justify-between"
+                    onClick={() => onResume(conversation)}
+                    disabled={disabled || conversation.type === "BIRTH"}
+                  >
+                    <span className="truncate">
+                      {conversationLabel(conversation.type, conversation.scene)}
+                    </span>
+                    <span className="text-[0.65rem] opacity-70">
+                      {conversation.turn}往復 / {formatDate(conversation.startedAt)}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function ActionPanel({
   editing, items, selectedItem, saving, mutationError, onSelect, onStore, selectionRef,
+  dailyQuestion, unreviewed, onStartDaily, onResume,
 }: {
   editing: boolean;
   items: HomeItem[];
@@ -364,6 +473,10 @@ function ActionPanel({
   onSelect: (topicId: number) => void;
   onStore: () => void;
   selectionRef: RefObject<HTMLDivElement | null>;
+  dailyQuestion: string | null;
+  unreviewed: ConversationSummary[];
+  onStartDaily: () => void;
+  onResume: (conversation: ConversationSummary) => void;
 }) {
   return (
     <aside className={`${styles.panel} card border border-base-300 bg-base-100/95 shadow-lg`}>
@@ -379,9 +492,16 @@ function ActionPanel({
           </div>
         ) : (
           <>
-            <UnavailableFeature icon={<LuMessageCircle />} title="今日のひとこと" description="分身との会話を始める機能は準備中です。" />
-            <UnavailableFeature icon={<LuClock3 />} title="途中の会話" description="途中からの会話再開は準備中です。" />
-            <UnavailableFeature icon={<LuRefreshCw />} title="未振り返り" description="会話の振り返り一覧は準備中です。" />
+            <DailyQuestionCard
+              question={dailyQuestion}
+              disabled={saving}
+              onStart={onStartDaily}
+            />
+            <UnreviewedCard
+              conversations={unreviewed}
+              disabled={saving}
+              onResume={onResume}
+            />
             <UnavailableFeature icon={<LuTrophy />} title="成長記録" description="分身の成長を読み返す機能は準備中です。" />
           </>
         )}
@@ -423,6 +543,12 @@ function HomeDashboard() {
   const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [mutationError, setMutationError] = useState<string | null>(null);
+  const [dailyQuestion, setDailyQuestion] = useState<string | null>(null);
+  const [unreviewed, setUnreviewed] = useState<ConversationSummary[]>([]);
+  const [session, setSession] = useState<{
+    type: "PRACTICE" | "DAILY";
+    scene: ConversationScene;
+  } | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -440,6 +566,25 @@ function HomeDashboard() {
         setLoading(false);
       },
     );
+    return () => controller.abort();
+  }, [requestId]);
+
+  // 今日のひとことと未振り返り一覧は家の表示を止めるほどではないため、
+  // 失敗しても空のまま描く(カードが「ありません」表示になる)。
+  useEffect(() => {
+    const controller = new AbortController();
+    conversationApi
+      .dailyQuestion(controller.signal)
+      .then((value) => {
+        if (!controller.signal.aborted) setDailyQuestion(value?.question ?? null);
+      })
+      .catch(() => undefined);
+    conversationApi
+      .listUnreviewed(controller.signal)
+      .then((value) => {
+        if (!controller.signal.aborted) setUnreviewed(value);
+      })
+      .catch(() => undefined);
     return () => controller.abort();
   }, [requestId]);
 
@@ -465,6 +610,20 @@ function HomeDashboard() {
     setLoadError(null);
     setMutationError(null);
     setRequestId((value) => value + 1);
+  }
+
+  function closeSession() {
+    setSession(null);
+    // 振り返りでEXP・思い出の品・次の質問が変わるため、家ごと読み直す。
+    setRequestId((value) => value + 1);
+  }
+
+  function resumeConversation(conversation: ConversationSummary) {
+    // BIRTHはオンボーディング専用の画面を持つため、ここからは開かない。
+    if (conversation.type === "BIRTH") {
+      return;
+    }
+    setSession({ type: conversation.type, scene: conversation.scene });
   }
 
   function selectItem(topicId: number) {
@@ -530,6 +689,7 @@ function HomeDashboard() {
   }
 
   return (
+    <>
     <ImmersiveMapShell
       mapId="home-interior"
       interaction="fixed"
@@ -547,7 +707,7 @@ function HomeDashboard() {
       } : undefined}
       canvasClassName={styles.homeCanvas}
       hudClassName={styles.homeHud}
-      paused={saving}
+      paused={saving || session !== null}
     >
       {loading ? (
         <>
@@ -595,6 +755,10 @@ function HomeDashboard() {
             saving={saving}
             mutationError={mutationError}
             onStore={storeItem}
+            dailyQuestion={dailyQuestion}
+            unreviewed={unreviewed}
+            onStartDaily={() => setSession({ type: "DAILY", scene: null })}
+            onResume={resumeConversation}
           />
         </>
       ) : (
@@ -627,6 +791,17 @@ function HomeDashboard() {
         </>
       )}
     </ImmersiveMapShell>
+
+    {session && home && (
+      <ConversationSession
+        type={session.type}
+        scene={session.scene}
+        npc={{ name: home.npc.name, presetId: home.npc.presetId }}
+        presentation="modal"
+        onClose={closeSession}
+      />
+    )}
+    </>
   );
 }
 

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { conversationErrorMessages } from "@/features/conversation/errors";
 import { useConversation } from "@/features/conversation/use-conversation";
 import type { ReviewResult } from "@/features/conversation/types";
 import { useNpcBirthFlow } from "@/features/npc/use-npc-birth-flow";
-import type { ErrorMessageOverrides } from "@/lib/api/errors";
 import NpcAwakening from "./npc-awakening";
 import NpcConversation from "./npc-conversation";
 import NpcLoading from "./npc-loading";
@@ -21,23 +21,9 @@ import NpcSelect from "./npc-select";
  * 画面遷移の詳細は useNpcBirthFlow のコメントを参照。
  */
 
-// この画面固有のエラー文言。通信失敗・401・5xx・CSRFは @/lib/api/errors の共通文言を使う。
-// モジュール定数にしてフックへ渡すオブジェクトの同一性を保つ。
-const BIRTH_ERROR_MESSAGES: ErrorMessageOverrides = {
-  codes: {
-    CREDENTIAL_NOT_CONFIGURED: "先にAI利用設定を完了してください。",
-    DEMO_LIMIT_EXCEEDED:
-      "デモ利用の上限に達しました。AI利用設定から自分のAPIキーへ切り替えてください。",
-    LLM_CALL_FAILED:
-      "AIの返事を受け取れませんでした。送信内容は保存されていないため、もう一度試せます。",
-    CONVERSATION_CONFIGURATION_ERROR:
-      "最初の会話を準備できませんでした。管理者へお問い合わせください。",
-    CONVERSATION_TOO_SHORT: "誕生を確定するには、あと少し会話が必要です。",
-    // 会話がすでに締めくくられていたときの案内(共通の既定文言に誕生の導線を足す)。
-    CONVERSATION_FINISHED:
-      "会話はすでに締めくくられています。誕生の振り返りへ進めます。",
-  },
-};
+// 文言は features/conversation/errors.ts に集約。種別ごとに1つを使い回すため、
+// フックへ渡すオブジェクトの同一性も保たれる。
+const BIRTH_ERROR_MESSAGES = conversationErrorMessages("BIRTH");
 
 export default function NpcBirth() {
   // 誕生確定の結果。BIRTH固有なので共通フックの外で保持する。

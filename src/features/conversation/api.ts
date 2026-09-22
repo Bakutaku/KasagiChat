@@ -2,14 +2,16 @@
  * 会話APIの呼び出し。CSRFやエラー変換は @/lib/api/client が担当する。
  *
  * type / scene は引数で受け取るだけで、組み合わせの妥当性はサーバーが判断する
- * (現在は BIRTH + null 以外は 400 INVALID_CONVERSATION_REQUEST)。
+ * (PRACTICE はシーン必須、BIRTH と DAILY はシーン禁止)。
  */
 
 import { api } from "@/lib/api/client";
 import type {
   Conversation,
   ConversationScene,
+  ConversationSummary,
   ConversationType,
+  DailyQuestion,
   ReviewResult,
   SendMessageResponse,
 } from "./types";
@@ -26,6 +28,25 @@ export const conversationApi = {
     scene: ConversationScene,
     signal?: AbortSignal,
   ) => api.post<Conversation>(CONVERSATIONS_PATH, { type, scene }, signal),
+
+  /**
+   * 未振り返りの会話を新しい順に取得する。
+   * 進行中(IN_PROGRESS)と終了済み(FINISHED)の両方が返る。
+   */
+  listUnreviewed: async (signal?: AbortSignal): Promise<ConversationSummary[]> =>
+    // 本文なし・非JSONのときクライアントは undefined を返すため、空配列へ寄せる。
+    (await api.get<ConversationSummary[] | undefined>(
+      `${CONVERSATIONS_PATH}?status=UNREVIEWED`,
+      signal,
+    )) ?? [],
+
+  /**
+   * 今日のひとことの質問を取得する。
+   * まだ用意できていないときサーバーは 204 を返すため、null に寄せる。
+   */
+  dailyQuestion: async (signal?: AbortSignal): Promise<DailyQuestion | null> =>
+    (await api.get<DailyQuestion | undefined>("/api/daily-question", signal)) ??
+    null,
 
   /** 保存済みの状態と全メッセージを取得する。再読込やずれの解消に使う。 */
   get: (id: string, signal?: AbortSignal) =>
