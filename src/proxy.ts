@@ -16,6 +16,25 @@ const ONBOARDING_PATH = "/onboarding";
 const CREDENTIAL_PATH = "/onboarding/credentials";
 const NPC_BIRTH_PATH = "/onboarding/npc";
 const HOME_PATH = "/home";
+const EVENTS_PATH = "/events";
+const INVITE_PATH = "/invite";
+
+/**
+ * 本登録済みユーザーが開ける画面。
+ *
+ * 完全一致か直下だけを許可します。前方一致だけで判定すると /homely のような
+ * 別の画面まで通ってしまいます。
+ */
+const REGISTERED_PATHS = [HOME_PATH, EVENTS_PATH] as const;
+
+/**
+ * QRから未ログインで招待ページを開いた人を、ログイン後に戻すためのCookie。
+ *
+ * OAuthの成功後の遷移先はバックエンドが決めており、クエリ文字列は往復で失われます。
+ * 招待ページ側(invitation-join.tsx)が401を受けた時点で書き込みます。
+ */
+const PENDING_INVITE_COOKIE = "kc_pending_invite";
+const INVITE_CODE_PATTERN = /^[A-Za-z0-9]{6,8}$/;
 
 type UserMeResponse = {
   onboarding?: {
@@ -93,6 +112,12 @@ async function getAuthState(request: NextRequest): Promise<AuthState> {
   }
 }
 
+function isRegisteredPath(pathname: string) {
+  return REGISTERED_PATHS.some(
+    (base) => pathname === base || pathname.startsWith(`${base}/`),
+  );
+}
+
 function redirectTo(request: NextRequest, pathname: string) {
   const url = request.nextUrl.clone();
   url.pathname = pathname;
@@ -139,7 +164,18 @@ export async function proxy(request: NextRequest) {
         : redirectTo(request, NPC_BIRTH_PATH);
     }
 
-    return pathname.startsWith(HOME_PATH)
+    // 初回フローを終えた時点で、預かっていた招待コードの続きへ戻します。
+    const pendingInvite = request.cookies.get(PENDING_INVITE_COOKIE)?.value;
+    if (pendingInvite) {
+      // コードをそのままURLへ入れないための検証です(外部サイトへ飛ばさない)。
+      const response = INVITE_CODE_PATTERN.test(pendingInvite)
+        ? redirectTo(request, `${INVITE_PATH}/${pendingInvite}`)
+        : redirectTo(request, HOME_PATH);
+      response.cookies.delete(PENDING_INVITE_COOKIE);
+      return response;
+    }
+
+    return isRegisteredPath(pathname)
       ? NextResponse.next()
       : redirectTo(request, HOME_PATH);
   }
@@ -147,6 +183,8 @@ export async function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
+// /invite/:code は含めません。未ログインでもページを開かせ、招待コードを預けてから
+// ログインへ送る必要があるためです(ここで弾くとコードが失われます)。
 export const config = {
-  matcher: ["/login", "/onboarding/:path*", "/home/:path*"],
+  matcher: ["/login", "/onboarding/:path*", "/home/:path*", "/events/:path*"],
 };

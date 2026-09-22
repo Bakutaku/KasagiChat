@@ -14,7 +14,7 @@ export type TownVisit = MapTargetDetails & {
   place: string;
   imageSrc?: string;
   scene: PracticeSceneKey | null;
-  destination?: "/home";
+  destination?: "/home" | "/events";
 };
 
 export function townVisit(spotId: string): TownVisit | null {
@@ -38,8 +38,9 @@ export function townVisit(spotId: string): TownVisit | null {
   };
   if (spotId === "plaza") return {
     name: "広場", place: "星川の街", scene: null,
-    description: "花と噴水に囲まれた、街の小さな憩いの場所。交流機能は準備中です。",
-    status: "準備中",
+    destination: "/events",
+    description: "花と噴水に囲まれた、街の小さな憩いの場所。イベントの入口を兼ねています。",
+    status: "イベントの入口", actionLabel: "イベント一覧を見る",
   };
   return null;
 }

@@ -12,11 +12,11 @@
 | ------------------- | ------------------------------------------ | --------------------------- | -------------------------------------------------- |
 | `/home`             | `home-interior` / `home-interior.json`     | 固定カメラ                  | `src/app/(immersive)/home/page.tsx`                |
 | `/map`              | `hoshikawa-town` / `hoshikawa-town.json`   | パン・ズーム・5スポット選択 | `src/app/(immersive)/map/page.tsx`、`town-map.tsx` |
-| `/events/[eventId]` | `komorebi-lounge` / `komorebi-lounge.json` | 固定カメラ                  | `src/app/(immersive)/events/[eventId]/page.tsx`    |
+| `/events/[eventId]` | `komorebi-lounge` / `komorebi-lounge.json` | 固定カメラ                  | `src/app/(immersive)/events/[eventId]/page.tsx`、`event-venue.tsx` |
 
 `(immersive)` はURLを変更しないルートグループです。共通のルートレイアウトを継承し、各画面のシェルが全画面とヘッダーを所有します。Homeは既存の `(navigation)` から移しました。
 
-作業開始時のmainにはイベント一覧・作成・参加確認のページはありませんでした。今回はそれらのprototype機能や仮フォームを追加していません。今後追加する際は `(navigation)` に置き、既存の通常レイアウトを利用してください。`/events` 全体を全画面レイアウトで囲っていないため、会場以外にマップは適用されません。会場はUUID形式のIDだけを受け付けますが、実イベントの存在・参加権限はまだ検証していません。
+イベント一覧・作成・招待参加のページは `(navigation)` にあり（`/events`、`/events/new`、`/invite/[code]`）、通常のヘッダー付きレイアウトを使います。`/events` 全体を全画面レイアウトで囲っていないため、会場以外にマップは適用されません。会場はUUID形式のIDだけを受け付けたうえで、`GET /api/events/{id}` の結果で参加権限を確認します。参加者以外・存在しないイベントはサーバーが同じ `EVENT_NOT_FOUND` を返すため、会場は `notFound()` ではなく戻り先付きのエラー表示にします。
 
 ## 公開インターフェース
 
@@ -46,7 +46,7 @@ const characters: RuntimeMapCharacter[] = [
 
 - `MapSceneId`: `home-interior | hoshikawa-town | komorebi-lounge`。
 - `ImmersiveMapShell`: `mapId`、`interaction: "fixed" | "explore"`、`paused?`、`characters?`、`onSelect?: (spot: MapSpot | null) => void`、HUDの`children?`。
-- `RuntimeMapCharacter`: `id`、画像の`src`、表示名の`name`、`column`、`row`。現在の3画面は空配列を渡し、サンプル参加者を生成しません。
+- `RuntimeMapCharacter`: `id`、画像の`src`、表示名の`name`、`column`、`row`。イベント会場は `src/features/events/event-map-adapter.ts` の座席表で参加者を配置します(座席は重複させません。共通描画は同じマスのキャラクターを重ねて描くためです)。家と街は参加者を生成しません。
 - `MapSpot`: `id`、`name`、座標、`entityId`。選択は通知だけです。遷移先や会話開始の判断は画面側に置きます。街の初版は選択名をHUDに表示します。
 
 ## 責務と差し替え先

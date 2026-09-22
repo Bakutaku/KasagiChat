@@ -40,10 +40,11 @@ test("人物・建物の案内が同じ会話相手を参照し、人物は実�
   }
 });
 
-test("家と広場は会話シーンを持たず、未知の対象に行き先を作らない", () => {
+test("家と広場は会話シーンを持たず画面へ遷移し、未知の対象に行き先を作らない", () => {
   assert.equal(townVisit("home").scene, null);
   assert.equal(townVisit("home").destination, "/home");
   assert.equal(townVisit("plaza").scene, null);
-  assert.equal(townVisit("plaza").actionLabel, undefined);
+  assert.equal(townVisit("plaza").destination, "/events");
+  assert.ok(townVisit("plaza").actionLabel);
   assert.equal(townVisit("unknown"), null);
 });
