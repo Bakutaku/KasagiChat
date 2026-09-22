@@ -37,6 +37,15 @@ export type MapRoom = {
   accentColor: string;
   trimColor: string;
 };
+/** 屋外マップを箱庭として見せる土台と遠景。室内の壁とは併用しません。 */
+export type MapBackdrop = {
+  height: number;
+  baseThickness: number;
+  baseColor: string;
+  skyColor: string;
+  distantColor: string;
+  landscapeColor: string;
+};
 export type MapFloor = MapPoint & {
   sprite: FloorName;
   color?: string;
@@ -63,6 +72,7 @@ export type MapDocument = {
   spots: MapSpot[];
   placementAnchors: MapPlacementAnchor[];
   room?: MapRoom;
+  backdrop?: MapBackdrop;
 };
 /** APIを扱う画面が静的な地点へ関連付ける表示専用データ。 */
 export type RuntimeMapObject = {

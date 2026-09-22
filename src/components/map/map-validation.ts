@@ -215,6 +215,9 @@ export function parseMapDocument(
     };
   });
   const room = input.room === undefined ? undefined : record(input.room);
+  const backdrop = input.backdrop === undefined ? undefined : record(input.backdrop);
+  if (room !== undefined && backdrop !== undefined)
+    fail("室内外装と屋外背景は同時に指定できません。");
   return {
     id: expectedId,
     name: text(input.name, 80),
@@ -229,6 +232,14 @@ export function parseMapDocument(
       wallColor: color(room.wallColor),
       accentColor: color(room.accentColor),
       trimColor: color(room.trimColor),
+    } }),
+    ...(backdrop === undefined ? {} : { backdrop: {
+      height: number(backdrop.height, 1, 5),
+      baseThickness: number(backdrop.baseThickness, 0.1, 1),
+      baseColor: color(backdrop.baseColor),
+      skyColor: color(backdrop.skyColor),
+      distantColor: color(backdrop.distantColor),
+      landscapeColor: color(backdrop.landscapeColor),
     } }),
   };
 }

@@ -15,6 +15,7 @@ const { toWorld, cameraZoom, beginTap, moveTap, isTap } = loadTypescript(
 );
 const read = (id) => readFileSync(`public/assets/maps/${id}.json`, "utf8");
 const home = () => JSON.parse(read("home-interior"));
+const town = () => JSON.parse(read("hoshikawa-town"));
 const parseHome = (value) =>
   parseMapDocument(JSON.stringify(value), "home-interior");
 const index = parseMapIndex(read("index"));
@@ -41,6 +42,33 @@ test("登録された3つのマップと素材が存在し、実行時キャラ�
   assert.equal(
     parseMapDocument(read("hoshikawa-town"), "hoshikawa-town").spots.length,
     5,
+  );
+});
+
+test("街は厚い土台と屋外遠景を持ち、室内外装とは併用しない", () => {
+  const document = parseMapDocument(read("hoshikawa-town"), "hoshikawa-town");
+  assert.equal(document.backdrop.baseThickness, 0.52);
+  assert.equal(document.backdrop.height, 3.2);
+  assert.equal(document.room, undefined);
+  for (const mutate of [
+    (d) => { d.backdrop.height = 0; },
+    (d) => { d.backdrop.baseThickness = 1.1; },
+    (d) => { d.backdrop.skyColor = "skyblue"; },
+    (d) => { delete d.backdrop.landscapeColor; },
+    (d) => { d.room = home().room; },
+  ]) {
+    const value = town();
+    mutate(value);
+    assert.throws(
+      () => parseMapDocument(JSON.stringify(value), "hoshikawa-town"),
+      String(mutate),
+    );
+  }
+  const legacy = town();
+  delete legacy.backdrop;
+  assert.equal(
+    parseMapDocument(JSON.stringify(legacy), "hoshikawa-town").backdrop,
+    undefined,
   );
 });
 

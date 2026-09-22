@@ -72,7 +72,7 @@ const characters: RuntimeMapCharacter[] = [
 
 JSONの固定データは `version: 1`、`id`、`name`、`description`、`size`、`floor.legend`、`floor.rows`、`entities`、`spots` です。`floor.rows` の各文字が床の凡例を指します。最大100×100マス、置物1,000件、スポット100件、JSONはUTF-8で1MBまで検証します。一覧のファイル名は同一ディレクトリのJSONだけを許可します。
 
-`entities` は素材の `sprite` と位置・寸法を指定します。家はoak／carpet／limestoneの床と専用ソファ・ローテーブル・既存planterを使い、任意の `room` で壁・窓・床の厚みを描画します。`trimTransparent: true` の置物は透明余白を除いて指定寸法内へ比率を保って収めます。室内外装・新素材の詳細は [home-map-art.md](home-map-art.md) を参照してください。`spots[].entityId` は選択対象の置物を参照します。キャラクターや参加者は実行中に変わるため、JSONの `npcs`・`characters` は受け付けません。
+`entities` は素材の `sprite` と位置・寸法を指定します。家はoak／carpet／limestoneの床と専用ソファ・ローテーブル・既存planterを使い、任意の `room` で壁・窓・床の厚みを描画します。屋外は任意の `backdrop` で厚い箱庭の土台と、カメラ奥の空・丘の遠景を描画できます。`room` と `backdrop` は併用できません。`trimTransparent: true` の置物は透明余白を除いて指定寸法内へ比率を保って収めます。室内外装・新素材の詳細は [home-map-art.md](home-map-art.md) を参照してください。`spots[].entityId` は選択対象の置物を参照します。キャラクターや参加者は実行中に変わるため、JSONの `npcs`・`characters` は受け付けません。
 
 同じ場所の模様替えはJSONだけを編集します。新しいマップはJSONを追加し、一覧と `mapRegistry` にIDを登録してください。新しい画面は薄いアダプターを追加し、`mapId`、操作モード、実行時キャラクター、HUDを宣言します。APIレスポンスを `RuntimeMapCharacter[]` に変換する責務もその画面側に置きます。共通シェルへHome・イベントの条件分岐を追加する必要はありません。
 

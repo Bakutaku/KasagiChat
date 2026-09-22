@@ -7,6 +7,14 @@
     "columns": 12,
     "rows": 10
   },
+  "backdrop": {
+    "height": 3.2,
+    "baseThickness": 0.52,
+    "baseColor": "#816b4f",
+    "skyColor": "#dcebe6",
+    "distantColor": "#b9d0c2",
+    "landscapeColor": "#8eae8d"
+  },
   "floor": {
     "legend": {
       "G": {
