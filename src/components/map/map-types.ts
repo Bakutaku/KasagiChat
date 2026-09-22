@@ -17,6 +17,8 @@ export const objectNames = [
   "fence",
   "fountain",
   "flowerbed",
+  "home-sofa",
+  "home-coffee-table",
 ] as const;
 export type MapEntity = MapPoint & {
   id: string;
@@ -25,6 +27,15 @@ export type MapEntity = MapPoint & {
   height: number;
   offsetX?: number;
   offsetY?: number;
+  /** 生成素材の透明余白を除き、指定寸法の内側へ比率を保って収めます。 */
+  trimTransparent?: boolean;
+};
+/** 室内マップだけが持つ外装。家具・配置品・APIの状態とは独立しています。 */
+export type MapRoom = {
+  wallHeight: number;
+  wallColor: string;
+  accentColor: string;
+  trimColor: string;
 };
 export type MapFloor = MapPoint & {
   sprite: FloorName;
@@ -49,6 +60,7 @@ export type MapDocument = {
   entities: MapEntity[];
   spots: MapSpot[];
   placementAnchors: MapPlacementAnchor[];
+  room?: MapRoom;
 };
 /** APIを扱う画面が静的な地点へ関連付ける表示専用データ。 */
 export type RuntimeMapObject = {

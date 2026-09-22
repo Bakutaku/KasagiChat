@@ -55,6 +55,11 @@ function number(value: unknown, min: number, max: number): number {
     fail("マップの数値が範囲外です。");
   return value;
 }
+function color(value: unknown): string {
+  if (typeof value !== "string" || !/^#[0-9a-f]{6}$/i.test(value))
+    fail("室内の色は#RRGGBB形式にしてください。");
+  return value;
+}
 export function isInside(point: MapPoint, size: MapSize): boolean {
   return (
     Number.isFinite(point.column) &&
@@ -159,12 +164,15 @@ export function parseMapDocument(
     )
       fail("置物のIDまたは素材が不正です。");
     entityIds.add(key);
+    if (entity.trimTransparent !== undefined && typeof entity.trimTransparent !== "boolean")
+      fail("置物の透過余白設定が不正です。");
     return {
       id: key,
       ...point(entity, size),
       sprite: entity.sprite as MapEntity["sprite"],
       width: number(entity.width, 1, 512),
       height: number(entity.height, 1, 512),
+      ...(entity.trimTransparent === undefined ? {} : { trimTransparent: entity.trimTransparent as boolean }),
       ...(entity.offsetX === undefined
         ? {}
         : { offsetX: number(entity.offsetX, -512, 512) }),
@@ -202,6 +210,7 @@ export function parseMapDocument(
       height: number(anchor.height, 0.1, 4),
     };
   });
+  const room = input.room === undefined ? undefined : record(input.room);
   return {
     id: expectedId,
     name: text(input.name, 80),
@@ -211,5 +220,11 @@ export function parseMapDocument(
     entities,
     spots,
     placementAnchors,
+    ...(room === undefined ? {} : { room: {
+      wallHeight: number(room.wallHeight, 1, 3),
+      wallColor: color(room.wallColor),
+      accentColor: color(room.accentColor),
+      trimColor: color(room.trimColor),
+    } }),
   };
 }

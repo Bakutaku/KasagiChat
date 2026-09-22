@@ -11,6 +11,7 @@ import {
 } from "three";
 import { makeFloor } from "./floor-texture";
 import { toWorld } from "./map-geometry";
+import { visibleImageBounds } from "./map-image-bounds";
 import {
   floorColors,
   floorNames,
@@ -77,6 +78,7 @@ export function ImageSprite({
   order,
   spotId,
   character = false,
+  trimTransparent = false,
 }: {
   src: string;
   position: [number, number, number];
@@ -85,21 +87,39 @@ export function ImageSprite({
   order: number;
   spotId?: string;
   character?: boolean;
+  trimTransparent?: boolean;
 }) {
   const source = useLoader(TextureLoader, src);
-  const texture = useMemo(() => {
+  const { texture, aspect } = useMemo(() => {
     const clone = source.clone();
+    let aspect: number | undefined;
+    if (trimTransparent) {
+      const image = source.image as HTMLImageElement;
+      const canvas = window.document.createElement("canvas");
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const context = canvas.getContext("2d");
+      if (context) {
+        context.drawImage(image, 0, 0);
+        const bounds = visibleImageBounds(context.getImageData(0, 0, image.width, image.height).data, image.width, image.height);
+        clone.repeat.set(bounds.width / image.width, bounds.height / image.height);
+        clone.offset.set(bounds.left / image.width, 1 - (bounds.top + bounds.height) / image.height);
+        aspect = bounds.width / bounds.height;
+      }
+    }
     clone.colorSpace = SRGBColorSpace;
     clone.magFilter = character ? LinearFilter : NearestFilter;
     clone.needsUpdate = true;
-    return clone;
-  }, [source, character]);
+    return { texture: clone, aspect };
+  }, [source, character, trimTransparent]);
   useEffect(() => () => texture.dispose(), [texture]);
+  const fittedWidth = aspect ? Math.min(width, height * aspect) : width;
+  const fittedHeight = aspect ? fittedWidth / aspect : height;
   return (
     <sprite
       position={position}
       center={[0.5, 0]}
-      scale={[width, height, 1]}
+      scale={[fittedWidth, fittedHeight, 1]}
       renderOrder={order}
       userData={{ spotId }}
     >

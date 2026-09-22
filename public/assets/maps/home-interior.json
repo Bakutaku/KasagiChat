@@ -2,10 +2,16 @@
   "version": 1,
   "id": "home-interior",
   "name": "家",
-  "description": "木の床と小さな休憩スペースのある家。",
+  "description": "木枠の窓から光が入る、セージ色のソファと思い出の品のある小さな家。",
   "size": {
     "columns": 8,
     "rows": 7
+  },
+  "room": {
+    "wallHeight": 1.9,
+    "wallColor": "#eee3cc",
+    "accentColor": "#c7d0bb",
+    "trimColor": "#9c754e"
   },
   "floor": {
     "legend": {
@@ -20,42 +26,50 @@
       "L": {
         "sprite": "limestone",
         "spawnAllowed": true
+      },
+      "B": {
+        "sprite": "carpet",
+        "color": "#c6c3a3",
+        "spawnAllowed": true
       }
     },
     "rows": [
       "OOOOOOOO",
       "OOOOOOOO",
+      "OOBBBBOO",
       "OOCCCCOO",
       "OOCCCCOO",
-      "OOCCCCOO",
-      "OOOOOOOO",
-      "OOLLLLOO"
+      "OOBBBBOO",
+      "OOOLLOOO"
     ]
   },
   "entities": [
     {
-      "id": "bench",
-      "sprite": "bench",
-      "column": 2,
-      "row": 2,
-      "width": 104,
-      "height": 69
+      "id": "reading-sofa",
+      "sprite": "home-sofa",
+      "column": 3.4,
+      "row": 2.5,
+      "width": 220,
+      "height": 175,
+      "trimTransparent": true
     },
     {
       "id": "planter",
       "sprite": "planter",
-      "column": 6,
-      "row": 1,
-      "width": 102,
-      "height": 68
+      "column": 5.9,
+      "row": 1.5,
+      "width": 94,
+      "height": 64,
+      "trimTransparent": true
     },
     {
-      "id": "lamp",
-      "sprite": "lamp",
-      "column": 1,
-      "row": 1,
-      "width": 54,
-      "height": 92
+      "id": "tea-table",
+      "sprite": "home-coffee-table",
+      "column": 3.6,
+      "row": 4.5,
+      "width": 150,
+      "height": 110,
+      "trimTransparent": true
     }
   ],
   "spots": [],
@@ -87,7 +101,7 @@
     {
       "id": "bookshelf-4",
       "label": "本 4",
-      "column": 4.199999999999999,
+      "column": 4.2,
       "row": 0,
       "width": 0.95,
       "height": 0.85

@@ -9,6 +9,7 @@ import { isInside } from "./map-validation";
 import { GroundLayer, ImageSprite } from "./map-layers";
 import { MapInput } from "./map-input";
 import { MapObjectLayer } from "./map-object-layer";
+import { MapRoomLayer } from "./map-room-layer";
 import type {
   MapDocument,
   MapInteraction,
@@ -103,6 +104,7 @@ function Scene({
         <MapInput spots={document.spots} onSelect={onSelect} />
       )}
       <GroundLayer document={document} />
+      <MapRoomLayer size={document.size} room={document.room} />
       <MapObjectLayer document={document} objects={objects} editing={objectEditing} paused={paused} />
       {document.entities.map((entity) => {
         const position = toWorld(entity, document.size);
@@ -115,6 +117,7 @@ function Scene({
             position={position}
             width={entity.width / 76.37}
             height={entity.height / 76.37}
+            trimTransparent={entity.trimTransparent}
             order={1000 + Math.round((entity.column + entity.row) * 100)}
             spotId={
               document.spots.find((spot) => spot.entityId === entity.id)?.id

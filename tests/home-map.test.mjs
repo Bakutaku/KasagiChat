@@ -32,6 +32,29 @@ test("壊れた配置地点を拒否し、既存の地点なしマップも読�
   assert.deepEqual(parse(value).placementAnchors, []);
 });
 
+test("室内外装と透過余白設定を検証し、指定のない既存マップも読める", () => {
+  const document = parse(source());
+  assert.equal(document.room.wallHeight, 1.9);
+  assert.equal(document.entities.find(e => e.sprite === "home-sofa").trimTransparent, true);
+  const legacy = source();
+  delete legacy.room;
+  legacy.entities.forEach(e => delete e.trimTransparent);
+  const parsed = parse(legacy);
+  assert.equal(parsed.room, undefined);
+  assert.ok(parsed.entities.every(e => e.trimTransparent === undefined));
+  for (const mutate of [
+    d => d.room = null,
+    d => d.room.wallHeight = 0,
+    d => d.room.wallHeight = 4,
+    d => d.room.wallColor = "ivory",
+    d => d.room.accentColor = "#fff",
+    d => delete d.room.trimColor,
+    d => d.entities[0].trimTransparent = "true",
+  ]) {
+    const value = source(); mutate(value); assert.throws(() => parse(value));
+  }
+});
+
 test("収納中の品は描画せず、BOOKでもAPI画像を優先してローカル画像を用意する", () => {
   assert.deepEqual(homeMapObjects([book]), []);
   const placed = { ...book, slotId: "BOOKSHELF_2", imagePath: "/custom-book.png" };

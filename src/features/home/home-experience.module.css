@@ -1,15 +1,17 @@
 .homeCanvas {
-  inset: 5.75rem calc(clamp(18rem, 25vw, 23rem) + 2rem) 1rem calc(clamp(13rem, 19vw, 18rem) + 2rem) !important;
+  inset: 5.75rem calc(clamp(18rem, 23vw, 21rem) + 2rem) 1rem calc(clamp(13rem, 17vw, 16rem) + 2rem) !important;
   overflow: hidden;
   border: 1px solid color-mix(in oklab, var(--color-base-content) 16%, transparent);
   border-radius: var(--radius-box);
-  background: var(--color-base-200);
-  box-shadow: 0 12px 32px #00000018;
+  background:
+    radial-gradient(ellipse at 50% 38%, color-mix(in oklab, #e9d7b1 30%, transparent), transparent 68%),
+    var(--color-base-200);
+  box-shadow: inset 0 0 60px #00000006, 0 12px 32px #00000012;
 }
 .homeHud {
   inset: 5.75rem 1rem 1rem !important;
   display: grid;
-  grid-template-columns: clamp(13rem, 19vw, 18rem) minmax(0, 1fr) clamp(18rem, 25vw, 23rem);
+  grid-template-columns: clamp(13rem, 17vw, 16rem) minmax(0, 1fr) clamp(18rem, 23vw, 21rem);
   gap: 1rem;
   min-height: 0;
 }
