@@ -7,6 +7,12 @@
     "columns": 12,
     "rows": 10
   },
+  "room": {
+    "wallHeight": 2.35,
+    "wallColor": "#f3e7cf",
+    "accentColor": "#c9d4bd",
+    "trimColor": "#8e6848"
+  },
   "floor": {
     "legend": {
       "O": {
@@ -15,10 +21,12 @@
       },
       "C": {
         "sprite": "carpet",
+        "color": "#708f82",
         "spawnAllowed": true
       },
       "L": {
         "sprite": "limestone",
+        "color": "#eee3cf",
         "spawnAllowed": true
       }
     },
@@ -35,6 +43,53 @@
       "OOOOOOOOOLLL"
     ]
   },
-  "entities": [],
+  "entities": [
+    {
+      "id": "lounge-sofa-left",
+      "sprite": "home-sofa",
+      "column": 2.1,
+      "row": 0.85,
+      "width": 178,
+      "height": 138,
+      "trimTransparent": true
+    },
+    {
+      "id": "lounge-sofa-right",
+      "sprite": "home-sofa",
+      "column": 7.8,
+      "row": 0.85,
+      "width": 178,
+      "height": 138,
+      "trimTransparent": true
+    },
+    {
+      "id": "conversation-table",
+      "sprite": "home-coffee-table",
+      "column": 5,
+      "row": 4.75,
+      "width": 142,
+      "height": 98,
+      "trimTransparent": true,
+      "offsetY": 5
+    },
+    {
+      "id": "window-planter-left",
+      "sprite": "planter",
+      "column": 0.45,
+      "row": 0.65,
+      "width": 84,
+      "height": 56,
+      "trimTransparent": true
+    },
+    {
+      "id": "window-planter-right",
+      "sprite": "planter",
+      "column": 10.55,
+      "row": 0.65,
+      "width": 84,
+      "height": 56,
+      "trimTransparent": true
+    }
+  ],
   "spots": []
 }

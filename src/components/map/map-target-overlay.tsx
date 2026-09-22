@@ -55,9 +55,11 @@ export function MapTargetOverlay({
           </p>
           {details?.status && <p className="mt-1 text-xs font-medium text-base-content/70">{details.status}</p>}
           {details?.description && <p className="mt-2 text-xs leading-relaxed text-base-content/75">{details.description}</p>}
-          <p className="mt-3 flex items-center gap-1.5 border-t border-base-300 pt-2 text-xs">
-            <LuMousePointer2 aria-hidden="true" />{details?.actionLabel ?? "選択して詳しく見る"}
-          </p>
+          {(hover.kind === "spot" || onSelectCharacter) && (
+            <p className="mt-3 flex items-center gap-1.5 border-t border-base-300 pt-2 text-xs">
+              <LuMousePointer2 aria-hidden="true" />{details?.actionLabel ?? "選択して詳しく見る"}
+            </p>
+          )}
         </div>
       )}
       {(document.spots.length > 0 || characters.length > 0) && (

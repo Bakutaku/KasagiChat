@@ -30,7 +30,20 @@ test("座席は重複せず、会場マップの生成可能な床に収まる",
   for (const seat of seats) {
     assert.ok(seat.column >= 0 && seat.column < document.size.columns, `列が範囲外: ${seat.column}`);
     assert.ok(seat.row >= 0 && seat.row < document.size.rows, `行が範囲外: ${seat.row}`);
-    assert.ok(spawnable.has(`${seat.column}:${seat.row}`), `立てない床: ${seat.column}:${seat.row}`);
+    assert.ok(spawnable.has(`${Math.round(seat.column)}:${Math.round(seat.row)}`), `立てない床: ${seat.column}:${seat.row}`);
+  }
+  assert.ok(seats.some((seat) => !Number.isInteger(seat.column) || !Number.isInteger(seat.row)), "配置がグリッドに整列している");
+});
+
+test("会場は室内外装とラウンジ家具を持ち、素材がすべて存在する", () => {
+  const document = lounge();
+  assert.ok(document.room, "室内外装がない");
+  assert.ok(document.entities.length >= 5, "会場の家具が少なすぎる");
+  assert.ok(document.entities.some((entity) => entity.sprite === "home-sofa"));
+  assert.ok(document.entities.some((entity) => entity.sprite === "home-coffee-table"));
+  assert.ok(document.entities.every((entity) => !["flowerbed", "lamp"].includes(entity.sprite)), "屋外用の置物が室内にある");
+  for (const entity of document.entities) {
+    assert.ok(existsSync(`public/assets/map/tiles/${entity.sprite}.png`), `会場素材がない: ${entity.sprite}`);
   }
 });
 
@@ -40,6 +53,8 @@ test("参加者はサーバーの並び順で座席へ割り当てられ、立�
   assert.deepEqual(characters.map((character) => character.name), ["参加者1", "参加者2", "参加者3"]);
   assert.deepEqual(characters.map((character) => ({ column: character.column, row: character.row })), seats.slice(0, 3).map((seat) => ({ ...seat })));
   assert.equal(new Set(characters.map((character) => character.id)).size, 3);
+  assert.ok(characters.every((character) => character.showNameLabel === false));
+  assert.ok(characters.every((character) => character.showAmbientEmotes));
   for (const character of characters) {
     assert.ok(existsSync(`public${character.src}`), `立ち絵がない: ${character.src}`);
   }

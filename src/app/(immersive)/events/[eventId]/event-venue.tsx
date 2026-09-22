@@ -1,8 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { LuMap, LuTicket, LuUsers } from "react-icons/lu";
+import {
+  LuCalendarDays,
+  LuMap,
+  LuMapPin,
+  LuSparkles,
+  LuTicket,
+  LuUsers,
+} from "react-icons/lu";
 
 import ErrorAlert from "@/components/feedback/error-alert";
 import { ImmersiveMapShell } from "@/components/map";
@@ -21,6 +29,7 @@ import type { EventParticipant, KasagiEvent } from "@/features/events/types";
 import { venueMapId } from "@/features/events/venue";
 import { isAbortError } from "@/lib/api/client";
 import { getErrorMessage } from "@/lib/api/errors";
+import styles from "./event-venue.module.css";
 
 type Venue = { event: KasagiEvent; participants: EventParticipant[] };
 
@@ -88,36 +97,98 @@ export function EventVenue({ eventId }: { eventId: string }) {
 
   const mapId = venueMapId(venue.event.venueTemplate);
   const hidden = hiddenParticipantCount(venue.participants, mapId);
+  const characters = eventMapCharacters(venue.participants, mapId);
+  const atmosphere =
+    venue.event.phase === "ONGOING"
+      ? "会場ではゆったり交流が続いています"
+      : venue.event.phase === "UPCOMING"
+        ? "もうすぐ、このラウンジに参加者が集まります"
+        : "イベントの余韻が残るラウンジです";
 
   return (
     <ImmersiveMapShell
       mapId={mapId}
       interaction="fixed"
-      characters={eventMapCharacters(venue.participants, mapId)}
+      characters={characters}
+      canvasClassName={styles.venueCanvas}
+      hudClassName={styles.venueHud}
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-box border border-base-300 bg-base-100/85 p-3 backdrop-blur">
-        <div className="min-w-0">
-          <p className="flex flex-wrap items-center gap-2 font-medium">
-            <span className="truncate">{venue.event.title}</span>
-            <span className={`badge ${eventPhaseBadgeClass(venue.event.phase)}`}>
-              {eventPhaseLabel(venue.event.phase)}
-            </span>
-          </p>
-          <p className="flex items-center gap-1 text-xs opacity-70">
-            <LuUsers aria-hidden="true" />
-            {venue.event.participantCount}人が参加中
-            {hidden > 0 && `（会場に映らない ほか${hidden}人）`}・
-            {formatEventPeriod(venue.event.startsAt, venue.event.endsAt)}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/events" className="btn btn-sm">
-            イベント一覧
-          </Link>
-          <Link href="/map" className="btn btn-sm">
-            街へ戻る
-          </Link>
-        </div>
+      <div className={styles.venueChrome}>
+        <p className={styles.ambientStatus}>
+          <span className={styles.ambientDot} aria-hidden="true" />
+          {atmosphere}
+        </p>
+        <section className={styles.eventCard} aria-labelledby="event-venue-title">
+          <div className={styles.eventIdentity}>
+            <p className={styles.eyebrow}>
+              <LuSparkles aria-hidden="true" />
+              Event lounge
+              <span aria-hidden="true">·</span>
+              <LuMapPin aria-hidden="true" />
+              こもれびラウンジ
+            </p>
+            <div className={styles.titleRow}>
+              <h2 id="event-venue-title" className={styles.title}>
+                {venue.event.title}
+              </h2>
+              <span className={`badge badge-sm ${eventPhaseBadgeClass(venue.event.phase)}`}>
+                {eventPhaseLabel(venue.event.phase)}
+              </span>
+            </div>
+            {venue.event.description && (
+              <p className={styles.description}>{venue.event.description}</p>
+            )}
+            <div className={styles.metaRow}>
+              <span className={styles.metaItem}>
+                <LuUsers aria-hidden="true" />
+                {venue.event.participantCount}人が参加
+                {hidden > 0 && `・ほか${hidden}人`}
+              </span>
+              <span className={styles.metaItem}>
+                <LuCalendarDays aria-hidden="true" />
+                {formatEventPeriod(venue.event.startsAt, venue.event.endsAt)}
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.eventSide}>
+            <div className={styles.attendees} aria-label="会場にいる参加者">
+              {characters.length > 0 && (
+                <div className={styles.avatarStack} aria-hidden="true">
+                  {characters.slice(0, 4).map((character) => (
+                    <span className={styles.avatar} key={character.id}>
+                      <Image
+                        src={character.src}
+                        alt=""
+                        fill
+                        sizes="35px"
+                        className={styles.avatarImage}
+                      />
+                    </span>
+                  ))}
+                </div>
+              )}
+              <span className={styles.attendeeCopy}>
+                <span className={styles.attendeeCount}>
+                  {characters.length > 0 ? `${venue.event.participantCount}人の仲間` : "最初の参加者を待っています"}
+                </span>
+                <span className={styles.attendeeHint}>
+                  会場の分身たちが、交流の時間を過ごしています
+                </span>
+              </span>
+            </div>
+            <nav className={styles.actions} aria-label="イベント会場の移動">
+              <Link href="/events" className="btn btn-ghost btn-sm">
+                <LuTicket aria-hidden="true" />
+                イベント一覧
+              </Link>
+              <Link href="/map" className="btn btn-primary btn-sm">
+                <LuMap aria-hidden="true" />
+                街へ戻る
+              </Link>
+            </nav>
+          </div>
+        </section>
       </div>
     </ImmersiveMapShell>
   );

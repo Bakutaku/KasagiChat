@@ -99,6 +99,10 @@ export type RuntimeMapCharacter = MapPoint & {
   src: string;
   name: string;
   details?: MapTargetDetails;
+  /** falseの場合は常時名札を隠し、ホバー時のDOMツールチップだけで名前を示します。 */
+  showNameLabel?: boolean;
+  /** イベント会場など、交流中の短いリアクションをランダム表示する画面だけが指定します。 */
+  showAmbientEmotes?: boolean;
 };
 /** 表示だけの補足情報。開始可否や会話処理は画面が所有します。 */
 export type MapTargetDetails = {

@@ -1,0 +1,89 @@
+.emote {
+  --emote-accent: var(--color-primary);
+  --emote-surface: color-mix(in oklab, var(--emote-accent) 9%, white);
+
+  position: relative;
+  display: inline-grid;
+  min-width: 2.15rem;
+  height: 1.9rem;
+  place-items: center;
+  border: 2px solid color-mix(in oklab, var(--emote-accent) 34%, var(--color-base-content) 12%);
+  border-radius: 48% 52% 46% 54% / 55% 48% 52% 45%;
+  background: var(--emote-surface);
+  color: var(--emote-accent);
+  margin-left: -1.55rem;
+  padding-inline: 0.55rem;
+  font-size: 0.95rem;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow:
+    0 5px 14px #2d21182b,
+    inset 0 1px 0 #ffffffcc;
+  animation: emote-pop 180ms ease-out both;
+  transform: rotate(-4deg);
+}
+
+.emote > span {
+  position: relative;
+  z-index: 1;
+  transform: rotate(4deg);
+}
+
+.emote::before,
+.emote::after {
+  position: absolute;
+  border: 2px solid color-mix(in oklab, var(--emote-accent) 34%, var(--color-base-content) 12%);
+  border-radius: 999px;
+  background: var(--emote-surface);
+  content: "";
+}
+
+.emote::before {
+  right: 0.22rem;
+  bottom: -0.42rem;
+  width: 0.48rem;
+  height: 0.48rem;
+}
+
+.emote::after {
+  right: 0.02rem;
+  bottom: -0.68rem;
+  width: 0.25rem;
+  height: 0.25rem;
+  border-width: 1.5px;
+}
+
+.emoteWarm {
+  --emote-accent: #d96c32;
+}
+
+.emoteCool {
+  --emote-accent: #3c78a8;
+}
+
+.emoteHappy {
+  --emote-accent: #d99016;
+}
+
+.emoteSparkle {
+  --emote-accent: #8b5db5;
+}
+
+@keyframes emote-pop {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem) rotate(-4deg) scale(0.72);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(-4deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .emote {
+    animation: none;
+  }
+}

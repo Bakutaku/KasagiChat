@@ -14,30 +14,31 @@ import { presetImagePath } from "../npc/presets";
 import type { EventParticipant } from "./types";
 
 /**
- * こもれびラウンジの座席。中央のカーペット(列3〜7・行3〜6)を囲む木床のリング。
+ * こもれびラウンジの立ち位置。
  *
- * 共通描画は同じマスのキャラクターを重ねて描くため、座席は重複させません。
- * 並びは中央から外側へ交互にして、少人数でも輪になって話しているように見せます。
+ * 整列して見えないよう、小さな会話グループが会場へ散らばる位置にしています。
+ * 小数座標でグリッド感を抑えつつ、再取得や再描画で参加者が移動しないよう配列自体は固定です。
+ * 共通描画は同じ位置のキャラクターを重ねるため、座標は重複させません。
  */
 const LOUNGE_SEATS: readonly MapPoint[] = [
-  { column: 5, row: 2 },
-  { column: 5, row: 7 },
-  { column: 4, row: 2 },
-  { column: 6, row: 2 },
-  { column: 4, row: 7 },
-  { column: 6, row: 7 },
-  { column: 3, row: 2 },
-  { column: 7, row: 2 },
-  { column: 3, row: 7 },
-  { column: 7, row: 7 },
-  { column: 2, row: 4 },
-  { column: 8, row: 4 },
-  { column: 2, row: 5 },
-  { column: 8, row: 5 },
-  { column: 2, row: 3 },
-  { column: 8, row: 3 },
-  { column: 2, row: 6 },
-  { column: 8, row: 6 },
+  { column: 3.1, row: 2.35 },
+  { column: 4.05, row: 2.8 },
+  { column: 7.15, row: 2.25 },
+  { column: 8.15, row: 2.75 },
+  { column: 1.7, row: 3.7 },
+  { column: 2.65, row: 4.35 },
+  { column: 7.45, row: 4.05 },
+  { column: 8.55, row: 4.65 },
+  { column: 1.35, row: 5.85 },
+  { column: 2.45, row: 6.45 },
+  { column: 4.05, row: 6.1 },
+  { column: 5.15, row: 6.65 },
+  { column: 6.45, row: 6.05 },
+  { column: 8.1, row: 6.35 },
+  { column: 9.35, row: 5.75 },
+  { column: 2.9, row: 7.8 },
+  { column: 6.7, row: 7.65 },
+  { column: 9.25, row: 7.85 },
 ];
 
 /** マップごとの座席表。APIの参加者と静的なマップの対応はここだけで扱います。 */
@@ -69,6 +70,8 @@ export function eventMapCharacters(
     src: presetImagePath(participant.presetId),
     column: seats[index].column,
     row: seats[index].row,
+    showNameLabel: false,
+    showAmbientEmotes: true,
   }));
 }
 

@@ -11,6 +11,7 @@ import { MapInput } from "./map-input";
 import { MapObjectLayer } from "./map-object-layer";
 import { MapBackdropLayer } from "./map-backdrop-layer";
 import { MapRoomLayer } from "./map-room-layer";
+import styles from "./map-canvas.module.css";
 import type {
   MapDocument,
   MapInteraction,
@@ -34,6 +35,86 @@ export type MapCanvasProps = {
   onHover?: (hover: MapHover | null) => void;
   onError: (error: Error) => void;
 };
+
+const ambientEmotes = [
+  { label: "!", tone: "warm" },
+  { label: "?", tone: "cool" },
+  { label: "😂", tone: "happy" },
+  { label: "😊", tone: "happy" },
+  { label: "✨", tone: "sparkle" },
+  { label: "♪", tone: "cool" },
+  { label: "( ´ ▽ ` )", tone: "warm" },
+] as const;
+type AmbientEmote = (typeof ambientEmotes)[number];
+
+const emoteToneClasses: Record<AmbientEmote["tone"], string> = {
+  warm: styles.emoteWarm,
+  cool: styles.emoteCool,
+  happy: styles.emoteHappy,
+  sparkle: styles.emoteSparkle,
+};
+
+/** イベント参加者だけが持つ軽い自律演出。DOMの名前表示や選択状態とは分離します。 */
+function CharacterEmote({
+  character,
+  position,
+  paused,
+}: {
+  character: RuntimeMapCharacter;
+  position: [number, number, number];
+  paused: boolean;
+}) {
+  const [emote, setEmote] = useState<AmbientEmote | null>(null);
+  const invalidate = useThree((state) => state.invalidate);
+
+  useEffect(() => {
+    if (!character.showAmbientEmotes || paused) return;
+    let showTimer: ReturnType<typeof setTimeout> | undefined;
+    let hideTimer: ReturnType<typeof setTimeout> | undefined;
+    let stopped = false;
+
+    const schedule = () => {
+      showTimer = setTimeout(
+        () => {
+          if (stopped) return;
+          setEmote(ambientEmotes[Math.floor(Math.random() * ambientEmotes.length)]);
+          invalidate();
+          hideTimer = setTimeout(
+            () => {
+              if (stopped) return;
+              setEmote(null);
+              invalidate();
+              schedule();
+            },
+            900 + Math.random() * 650,
+          );
+        },
+        1400 + Math.random() * 3600,
+      );
+    };
+
+    schedule();
+    return () => {
+      stopped = true;
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, [character.showAmbientEmotes, invalidate, paused]);
+
+  if (!character.showAmbientEmotes || paused || !emote) return null;
+  return (
+    <Html
+      position={[position[0], 1.35, position[2]]}
+      center
+      style={{ pointerEvents: "none" }}
+      zIndexRange={[5, 1]}
+    >
+      <span className={`${styles.emote} ${emoteToneClasses[emote.tone]}`} aria-hidden="true">
+        <span>{emote.label}</span>
+      </span>
+    </Html>
+  );
+}
 
 function CameraFit({ mapSize, paused }: { mapSize: MapSize; paused: boolean }) {
   const { camera, size, invalidate } = useThree();
@@ -150,16 +231,19 @@ function Scene({
                 characterId={character.id}
                 trimTransparent
               />
-              <Html
-                position={[position[0], 1.4, position[2]]}
-                center
-                style={{ pointerEvents: "none" }}
-                zIndexRange={[5, 1]}
-              >
-                <span className="badge max-w-32 truncate bg-base-100/90 text-xs">
-                  {character.name}
-                </span>
-              </Html>
+              {character.showNameLabel !== false && (
+                <Html
+                  position={[position[0], 1.4, position[2]]}
+                  center
+                  style={{ pointerEvents: "none" }}
+                  zIndexRange={[5, 1]}
+                >
+                  <span className="badge max-w-32 truncate bg-base-100/90 text-xs">
+                    {character.name}
+                  </span>
+                </Html>
+              )}
+              <CharacterEmote character={character} position={position} paused={paused} />
             </group>
           );
         })}
