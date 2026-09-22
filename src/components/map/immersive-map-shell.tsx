@@ -11,6 +11,8 @@ import type {
   MapInteraction,
   MapSpot,
   RuntimeMapCharacter,
+  RuntimeMapObject,
+  MapObjectEditing,
 } from "./map-types";
 import styles from "./immersive-map-shell.module.css";
 
@@ -27,6 +29,8 @@ export type ImmersiveMapShellProps = {
   /** 会話などのオーバーレイを開く側が指定。閉じたらfalseに戻します。 */
   paused?: boolean;
   characters?: readonly RuntimeMapCharacter[];
+  objects?: readonly RuntimeMapObject[];
+  objectEditing?: MapObjectEditing;
   onSelect?: (spot: MapSpot | null) => void;
   /** HUDの内容・遷移先は画面側が所有します。ボタン等には通常のDOMを渡します。 */
   children?: ReactNode;
@@ -52,6 +56,8 @@ function LoadedMap({
   interaction,
   paused = false,
   characters = noCharacters,
+  objects,
+  objectEditing,
   onSelect,
 }: ImmersiveMapShellProps) {
   const [document, setDocument] = useState<MapDocument | null>(null);
@@ -82,6 +88,8 @@ function LoadedMap({
         interaction={interaction}
         paused={paused}
         characters={characters}
+        objects={objects}
+        objectEditing={objectEditing}
         onSelect={onSelect}
         onError={setError}
       />

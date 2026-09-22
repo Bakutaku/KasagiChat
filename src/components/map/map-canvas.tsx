@@ -8,12 +8,15 @@ import { cameraPosition, cameraZoom, toWorld } from "./map-geometry";
 import { isInside } from "./map-validation";
 import { GroundLayer, ImageSprite } from "./map-layers";
 import { MapInput } from "./map-input";
+import { MapObjectLayer } from "./map-object-layer";
 import type {
   MapDocument,
   MapInteraction,
   MapSize,
   MapSpot,
   RuntimeMapCharacter,
+  RuntimeMapObject,
+  MapObjectEditing,
 } from "./map-types";
 
 export type MapCanvasProps = {
@@ -21,6 +24,8 @@ export type MapCanvasProps = {
   interaction: MapInteraction;
   paused: boolean;
   characters: readonly RuntimeMapCharacter[];
+  objects?: readonly RuntimeMapObject[];
+  objectEditing?: MapObjectEditing;
   onSelect?: (spot: MapSpot | null) => void;
   onError: (error: Error) => void;
 };
@@ -67,6 +72,8 @@ function Scene({
   interaction,
   paused,
   characters,
+  objects,
+  objectEditing,
   onSelect,
   onError,
 }: MapCanvasProps) {
@@ -96,6 +103,7 @@ function Scene({
         <MapInput spots={document.spots} onSelect={onSelect} />
       )}
       <GroundLayer document={document} />
+      <MapObjectLayer document={document} objects={objects} editing={objectEditing} paused={paused} />
       {document.entities.map((entity) => {
         const position = toWorld(entity, document.size);
         position[0] += (entity.offsetX ?? 0) / 108;

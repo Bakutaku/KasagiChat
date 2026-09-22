@@ -5,14 +5,14 @@ import Link from "next/link";
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
-  type CSSProperties,
   type ReactNode,
+  type RefObject,
 } from "react";
 import {
   LuArchive,
-  LuBookOpen,
   LuCircleAlert,
   LuClock3,
   LuHouse,
@@ -20,7 +20,8 @@ import {
   LuInfo,
   LuMap,
   LuMessageCircle,
-  LuMove,
+  LuPencil,
+  LuCheck,
   LuRefreshCw,
   LuSparkles,
   LuTrophy,
@@ -36,9 +37,10 @@ import type {
   HomeItem,
   HomeItemKind,
   HomeResponse,
-  HomeSlot,
   HomeSlotId,
 } from "./types";
+import { HomeItemArtwork } from "./home-item-artwork";
+import { availableHomeSlots, homeAnchorId, homeMapObjects } from "./home-map-adapter";
 import styles from "./home-experience.module.css";
 
 const DESKTOP_MEDIA_QUERY = "(min-width: 768px)";
@@ -57,20 +59,6 @@ const HOME_ERROR_MESSAGES = {
   INVALID_REQUEST_BODY: "配置内容を確認して、もう一度お試しください。",
 } as const;
 
-const SLOT_POSITIONS: Record<HomeSlotId, { left: string; top: string }> = {
-  BOOKSHELF_1: { left: "13%", top: "14%" },
-  BOOKSHELF_2: { left: "28%", top: "14%" },
-  BOOKSHELF_3: { left: "42%", top: "14%" },
-  BOOKSHELF_4: { left: "58%", top: "14%" },
-  BOOKSHELF_5: { left: "72%", top: "14%" },
-  BOOKSHELF_6: { left: "87%", top: "14%" },
-  DISPLAY_1: { left: "18%", top: "39%" },
-  DISPLAY_2: { left: "36%", top: "31%" },
-  DISPLAY_3: { left: "53%", top: "38%" },
-  DISPLAY_4: { left: "75%", top: "30%" },
-  DISPLAY_5: { left: "34%", top: "62%" },
-  DISPLAY_6: { left: "68%", top: "61%" },
-};
 
 function subscribeToDesktop(change: () => void) {
   const media = window.matchMedia(DESKTOP_MEDIA_QUERY);
@@ -117,33 +105,6 @@ function placementErrorMessage(error: unknown) {
   });
 }
 
-function HomeItemArtwork({ item, compact = false }: { item: HomeItem; compact?: boolean }) {
-  const [failed, setFailed] = useState(false);
-  const hasImage = item.kind === "SOUVENIR" && item.imagePath && !failed;
-
-  if (hasImage) {
-    return (
-      // APIが返す動的パスはビルド時に寸法・配信元を確定できないため、失敗状態を持つ通常画像で扱います。
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={item.imagePath ?? undefined}
-        alt=""
-        className={compact ? styles.compactArtwork : styles.artworkImage}
-        onError={() => setFailed(true)}
-      />
-    );
-  }
-
-  return (
-    <span
-      className={`${compact ? styles.compactFallback : styles.artworkFallback} ${item.kind === "BOOK" ? styles.bookArtwork : ""}`}
-      aria-hidden="true"
-    >
-      {item.kind === "BOOK" ? <LuBookOpen /> : <LuImageOff />}
-    </span>
-  );
-}
-
 function PanelTitle({ icon, children }: { icon: ReactNode; children: ReactNode }) {
   return (
     <div className="flex items-center gap-2">
@@ -173,7 +134,7 @@ function UnavailableFeature({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-sm font-bold">{title}</h3>
-            <span className="badge badge-ghost badge-sm">未接続</span>
+            <span className="badge badge-ghost badge-sm">準備中</span>
           </div>
           <p className="mt-1 text-xs leading-relaxed text-base-content/65">
             {description}
@@ -249,10 +210,9 @@ function NpcPanel({ home }: { home: HomeResponse }) {
         <div className="rounded-box bg-base-200/70 p-3 text-xs leading-relaxed">
           <p className="font-semibold">いまの見た目</p>
           <p className="mt-1 text-base-content/65">
-            プリセット「{npc.presetId}」
             {appearanceCount > 0
-              ? `に${appearanceCount}件の見た目設定を適用中です。`
-              : "を使用しています。"}
+              ? "選んだ服やアクセサリーで過ごしています。"
+              : "お気に入りの姿で過ごしています。"}
           </p>
         </div>
         <div className="mt-auto border-t border-base-300 pt-3 text-xs text-base-content/65">
@@ -261,74 +221,6 @@ function NpcPanel({ home }: { home: HomeResponse }) {
         </div>
       </div>
     </aside>
-  );
-}
-
-function MapSlot({
-  slot,
-  item,
-  selectedItem,
-  saving,
-  onSelectItem,
-  onPlace,
-}: {
-  slot: HomeSlot;
-  item: HomeItem | undefined;
-  selectedItem: HomeItem | null;
-  saving: boolean;
-  onSelectItem: (topicId: number) => void;
-  onPlace: (slotId: HomeSlotId) => void;
-}) {
-  const selected = item?.topicId === selectedItem?.topicId;
-  const compatible = selectedItem?.kind === slot.acceptedKind;
-  const canPlace = Boolean(selectedItem && compatible && !item);
-  const position = SLOT_POSITIONS[slot.slotId];
-  const style = {
-    "--slot-left": position.left,
-    "--slot-top": position.top,
-  } as CSSProperties;
-
-  if (item) {
-    return (
-      <button
-        type="button"
-        className={`${styles.slot} ${styles.occupiedSlot} ${selected ? styles.selectedSlot : ""}`}
-        style={style}
-        onClick={() => onSelectItem(item.topicId)}
-        aria-pressed={selected}
-        aria-label={`${slotLabel(slot.slotId)}の${item.displayName}を選択`}
-        disabled={saving}
-      >
-        <HomeItemArtwork key={item.topicId} item={item} compact />
-        <span className={styles.slotName}>{item.displayName}</span>
-      </button>
-    );
-  }
-
-  if (canPlace) {
-    return (
-      <button
-        type="button"
-        className={`${styles.slot} ${styles.availableSlot}`}
-        style={style}
-        onClick={() => onPlace(slot.slotId)}
-        aria-label={`${slotLabel(slot.slotId)}に${selectedItem?.displayName}を配置`}
-        disabled={saving}
-      >
-        <LuMove aria-hidden="true" />
-        <span>{slotLabel(slot.slotId)}</span>
-      </button>
-    );
-  }
-
-  return (
-    <div
-      className={`${styles.slot} ${styles.emptySlot}`}
-      style={style}
-      aria-label={`${slotLabel(slot.slotId)}、空き`}
-    >
-      <span>{slot.acceptedKind === "BOOK" ? "本" : "飾"}</span>
-    </div>
   );
 }
 
@@ -435,11 +327,8 @@ function SelectedItemPanel({
       {item.sourceConversationId && (
         <div className="mt-3 rounded-box bg-base-100/75 p-3 text-xs">
           <p className="font-semibold">関連する会話</p>
-          <p className="mt-1 break-all font-mono text-[0.68rem] text-base-content/60">
-            {item.sourceConversationId}
-          </p>
           <p className="mt-1 text-base-content/60">
-            会話詳細画面が未実装のため、移動リンクは表示していません。
+            この品につながる会話があります。会話の読み返しは準備中です。
           </p>
         </div>
       )}
@@ -465,71 +354,42 @@ function SelectedItemPanel({
 }
 
 function ActionPanel({
-  selectedItem,
-  storedCount,
-  saving,
-  mutationError,
-  onStore,
+  editing, items, selectedItem, saving, mutationError, onSelect, onStore, selectionRef,
 }: {
+  editing: boolean;
+  items: HomeItem[];
   selectedItem: HomeItem | null;
-  storedCount: number;
   saving: boolean;
   mutationError: string | null;
+  onSelect: (topicId: number) => void;
   onStore: () => void;
+  selectionRef: RefObject<HTMLDivElement | null>;
 }) {
   return (
     <aside className={`${styles.panel} card border border-base-300 bg-base-100/95 shadow-lg`}>
       <div className="card-body gap-3 p-4">
-        <PanelTitle icon={<LuSparkles />}>家でできること</PanelTitle>
-        <SelectedItemPanel
-          item={selectedItem}
-          saving={saving}
-          error={mutationError}
-          onStore={onStore}
-        />
-        <UnavailableFeature
-          icon={<LuMessageCircle />}
-          title="今日のひとこと"
-          description="開始・再開APIがこのチェックアウトにないため、現在は利用できません。"
-        />
-        <UnavailableFeature
-          icon={<LuClock3 />}
-          title="途中の会話"
-          description="会話一覧APIが実装されたら、ここから再開できるようになります。"
-        />
-        <UnavailableFeature
-          icon={<LuRefreshCw />}
-          title="未振り返り"
-          description="未振り返り一覧APIが未接続のため、完了件数は表示していません。"
-        />
-        <section className="rounded-box border border-base-300 bg-base-100 p-3">
-          <div className="flex items-center gap-3">
-            <LuArchive className="text-primary" aria-hidden="true" />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-bold">未配置アイテム</h3>
-                <span className="badge badge-primary badge-sm">{storedCount}点</span>
-              </div>
-              <p className="mt-1 text-xs text-base-content/65">
-                中央下の一覧から選ぶと、置ける場所が強調されます。
-              </p>
+        <PanelTitle icon={editing ? <LuPencil /> : <LuSparkles />}>{editing ? "部屋を編集" : "家でできること"}</PanelTitle>
+        {editing ? (
+          <div id="home-editor" className="space-y-4">
+            <p className="text-xs text-base-content/65">アイテムを選び、部屋の＋を押して配置します。変更はその都度保存されます。</p>
+            <Inventory items={items} selectedItem={selectedItem} saving={saving} onSelect={onSelect} />
+            <div ref={selectionRef} tabIndex={-1} aria-label="選択中のアイテム" className={styles.selectionPanel}>
+              <SelectedItemPanel item={selectedItem} saving={saving} error={mutationError} onStore={onStore} />
             </div>
           </div>
-        </section>
-        <UnavailableFeature
-          icon={<LuTrophy />}
-          title="成長記録"
-          description="成長記録APIが未接続のため、現在は読み返せません。"
-        />
-        {saving ? (
-          <button type="button" className="btn btn-primary mt-1 w-full" disabled>
-            <span className="loading loading-spinner loading-xs" />
-            保存中
-          </button>
         ) : (
-          <Link href="/map" className="btn btn-primary mt-1 w-full">
-            <LuMap aria-hidden="true" />
-            街へ出る
+          <>
+            <UnavailableFeature icon={<LuMessageCircle />} title="今日のひとこと" description="分身との会話を始める機能は準備中です。" />
+            <UnavailableFeature icon={<LuClock3 />} title="途中の会話" description="途中からの会話再開は準備中です。" />
+            <UnavailableFeature icon={<LuRefreshCw />} title="未振り返り" description="会話の振り返り一覧は準備中です。" />
+            <UnavailableFeature icon={<LuTrophy />} title="成長記録" description="分身の成長を読み返す機能は準備中です。" />
+          </>
+        )}
+        {saving ? (
+          <button type="button" className="btn btn-primary mt-auto w-full" disabled>保存中</button>
+        ) : (
+          <Link href="/map" className="btn btn-primary mt-auto w-full">
+            <LuMap aria-hidden="true" />街へ出る
           </Link>
         )}
       </div>
@@ -551,6 +411,11 @@ function LoadingPanel({ title }: { title: string }) {
 }
 
 function HomeDashboard() {
+  const [editing, setEditing] = useState(false);
+  const editButtonRef = useRef<HTMLButtonElement>(null);
+  const selectionRef = useRef<HTMLDivElement>(null);
+  const mutationInFlight = useRef(false);
+  const [notice, setNotice] = useState("");
   const [home, setHome] = useState<HomeResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -583,15 +448,17 @@ function HomeDashboard() {
       home?.items.find((item) => item.topicId === selectedTopicId) ?? null,
     [home, selectedTopicId],
   );
-  const itemBySlot = useMemo(
-    () =>
-      new Map(
-        (home?.items ?? [])
-          .filter((item): item is HomeItem & { slotId: HomeSlotId } => item.slotId !== null)
-          .map((item) => [item.slotId, item]),
-      ),
-    [home],
-  );
+  const objects = useMemo(() => homeMapObjects(home?.items ?? []), [home]);
+  const availableSlots = availableHomeSlots(home?.slots ?? [], home?.items ?? [], selectedItem);
+
+  function finishEditing() {
+    if (mutationInFlight.current) return;
+    setEditing(false);
+    setSelectedTopicId(null);
+    setMutationError(null);
+    setNotice("");
+    editButtonRef.current?.focus();
+  }
 
   function retryLoad() {
     setLoading(true);
@@ -601,16 +468,19 @@ function HomeDashboard() {
   }
 
   function selectItem(topicId: number) {
+    if (!editing || mutationInFlight.current) return;
     setSelectedTopicId(topicId);
     setMutationError(null);
   }
 
   async function placeItem(slotId: HomeSlotId) {
-    if (!selectedItem || saving) return;
+    if (!editing || !selectedItem || mutationInFlight.current || !availableSlots.some((slot) => slot.slotId === slotId)) return;
+    mutationInFlight.current = true;
     setSaving(true);
     setMutationError(null);
     try {
       const updated = await homeApi.place(selectedItem.topicId, slotId);
+      setNotice(`${updated.displayName}を${slotLabel(slotId)}に配置しました。`);
       setHome((current) =>
         current
           ? {
@@ -624,16 +494,20 @@ function HomeDashboard() {
     } catch (error) {
       setMutationError(placementErrorMessage(error));
     } finally {
+      mutationInFlight.current = false;
       setSaving(false);
+      selectionRef.current?.focus();
     }
   }
 
   async function storeItem() {
-    if (!selectedItem || selectedItem.slotId === null || saving) return;
+    if (!editing || !selectedItem || selectedItem.slotId === null || mutationInFlight.current) return;
+    mutationInFlight.current = true;
     setSaving(true);
     setMutationError(null);
     try {
       await homeApi.store(selectedItem.topicId);
+      setNotice(`${selectedItem.displayName}を収納しました。`);
       setHome((current) =>
         current
           ? {
@@ -649,7 +523,9 @@ function HomeDashboard() {
     } catch (error) {
       setMutationError(placementErrorMessage(error));
     } finally {
+      mutationInFlight.current = false;
       setSaving(false);
+      selectionRef.current?.focus();
     }
   }
 
@@ -657,7 +533,18 @@ function HomeDashboard() {
     <ImmersiveMapShell
       mapId="home-interior"
       interaction="fixed"
-      characters={[]}
+      objects={objects}
+      objectEditing={editing && home ? {
+        anchorIds: home.slots.map((slot) => homeAnchorId(slot.slotId)),
+        selectedId: selectedTopicId === null ? null : String(selectedTopicId),
+        availableAnchorIds: availableSlots.map((slot) => homeAnchorId(slot.slotId)),
+        disabled: saving,
+        onSelectObject: (id) => selectItem(Number(id)),
+        onSelectAnchor: (id) => {
+          const slot = availableSlots.find((slot) => homeAnchorId(slot.slotId) === id);
+          if (slot) void placeItem(slot.slotId);
+        },
+      } : undefined}
       canvasClassName={styles.homeCanvas}
       hudClassName={styles.homeHud}
       paused={saving}
@@ -673,47 +560,38 @@ function HomeDashboard() {
       ) : home ? (
         <>
           <NpcPanel key={home.npc.presetId} home={home} />
-          <section className={styles.mapOverlay} aria-label="家のアイテム配置">
+          <section className={styles.mapOverlay} aria-label="家の部屋">
             <div className={styles.mapHeading}>
               <span className="font-bold">{home.npc.name}の家</span>
-              <span className="text-xs text-base-content/65">
-                {selectedItem ? "強調された空き場所を選択" : "アイテムを選んで配置"}
-              </span>
+              <button
+                ref={editButtonRef}
+                type="button"
+                className="btn btn-primary btn-sm"
+                aria-expanded={editing}
+                aria-controls={editing ? "home-editor" : undefined}
+                disabled={saving}
+                onClick={() => editing ? finishEditing() : setEditing(true)}
+              >
+                {editing ? <LuCheck aria-hidden="true" /> : <LuPencil aria-hidden="true" />}
+                {editing ? "完了" : "編集"}
+              </button>
             </div>
-            <div className={styles.slotLayer}>
-              {home.slots.length === 0 && (
-                <p className={styles.noSlots}>
-                  現在利用できる配置場所がありません。
-                </p>
-              )}
-              {home.slots.map((slot) => (
-                <MapSlot
-                  key={slot.slotId}
-                  slot={slot}
-                  item={itemBySlot.get(slot.slotId)}
-                  selectedItem={selectedItem}
-                  saving={saving}
-                  onSelectItem={selectItem}
-                  onPlace={placeItem}
-                />
-              ))}
-            </div>
-            <Inventory
-              items={home.items}
-              selectedItem={selectedItem}
-              saving={saving}
-              onSelect={selectItem}
-            />
+            {editing && home.slots.length === 0 && <p className={styles.noSlots}>現在利用できる配置場所がありません。</p>}
+            {editing && selectedItem && availableSlots.length === 0 && <p className={styles.mapHint}>この種類の空き場所はありません。配置済みの品を収納すると空けられます。</p>}
+            <p className="sr-only" role="status">{notice}</p>
+            {!editing && <ul className="sr-only" aria-label="部屋に配置したアイテム">{home.items.filter((item) => item.slotId).map((item) => <li key={item.topicId}>{item.displayName}</li>)}</ul>}
             {saving && (
               <div className={styles.savingOverlay} role="status">
-                <span className="loading loading-spinner loading-sm" />
-                配置を保存しています
+                <span className="loading loading-spinner loading-sm" />配置を保存しています
               </div>
             )}
           </section>
           <ActionPanel
             selectedItem={selectedItem}
-            storedCount={home.items.filter((item) => item.slotId === null).length}
+            editing={editing}
+            items={home.items}
+            onSelect={selectItem}
+            selectionRef={selectionRef}
             saving={saving}
             mutationError={mutationError}
             onStore={storeItem}

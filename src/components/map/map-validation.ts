@@ -188,6 +188,20 @@ export function parseMapDocument(
       ...point(spot, size),
     };
   });
+  const anchorIds = new Set<string>();
+  const placementAnchors = array(input.placementAnchors ?? [], 100).map((raw) => {
+    const anchor = record(raw);
+    const key = id(anchor.id);
+    if (anchorIds.has(key)) fail("配置地点のIDが重複しています。");
+    anchorIds.add(key);
+    return {
+      id: key,
+      label: text(anchor.label, 80),
+      ...point(anchor, size),
+      width: number(anchor.width, 0.1, 4),
+      height: number(anchor.height, 0.1, 4),
+    };
+  });
   return {
     id: expectedId,
     name: text(input.name, 80),
@@ -196,5 +210,6 @@ export function parseMapDocument(
     ground,
     entities,
     spots,
+    placementAnchors,
   };
 }
