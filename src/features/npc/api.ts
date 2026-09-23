@@ -28,4 +28,17 @@ export const npcApi = {
   /** 誕生前のNPCを1体作成する。AI利用設定が未完了なら拒否される。 */
   create: (body: CreateNpcRequest, signal?: AbortSignal) =>
     api.post<Npc>(NPC_PATH, body, signal),
+
+  /**
+   * プロフィール帳(人格文書・口調)を更新する。
+   * 省略したフィールドは変更しない。空文字列は「内容を空にする」を意味する。
+   */
+  update: (
+    patch: Partial<{
+      profile: string;
+      speechStyle: string;
+      speechStyleEnabled: boolean;
+    }>,
+    signal?: AbortSignal,
+  ) => api.patch<Npc>(NPC_PATH, patch, signal),
 };

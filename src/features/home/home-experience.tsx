@@ -47,6 +47,7 @@ import type {
 } from "./types";
 import { HomeItemArtwork } from "./home-item-artwork";
 import { availableHomeSlots, homeAnchorId, homeMapObjects } from "./home-map-adapter";
+import ProfileNotebook from "./profile-notebook";
 import styles from "./home-experience.module.css";
 
 const DESKTOP_MEDIA_QUERY = "(min-width: 768px)";
@@ -463,7 +464,7 @@ function UnreviewedCard({
 
 function ActionPanel({
   editing, items, selectedItem, saving, mutationError, onSelect, onStore, selectionRef,
-  dailyQuestion, unreviewed, onStartDaily, onResume,
+  dailyQuestion, unreviewed, onStartDaily, onResume, onItemsChange,
 }: {
   editing: boolean;
   items: HomeItem[];
@@ -477,6 +478,7 @@ function ActionPanel({
   unreviewed: ConversationSummary[];
   onStartDaily: () => void;
   onResume: (conversation: ConversationSummary) => void;
+  onItemsChange: (updater: (items: HomeItem[]) => HomeItem[]) => void;
 }) {
   return (
     <aside className={`${styles.panel} card border border-base-300 bg-base-100/95 shadow-lg`}>
@@ -492,6 +494,7 @@ function ActionPanel({
           </div>
         ) : (
           <>
+            <ProfileNotebook items={items} onItemsChange={onItemsChange} />
             <DailyQuestionCard
               question={dailyQuestion}
               disabled={saving}
@@ -659,6 +662,12 @@ function HomeDashboard() {
     }
   }
 
+  function updateItems(updater: (items: HomeItem[]) => HomeItem[]) {
+    setHome((current) =>
+      current ? { ...current, items: updater(current.items) } : current,
+    );
+  }
+
   async function storeItem() {
     if (!editing || !selectedItem || selectedItem.slotId === null || mutationInFlight.current) return;
     mutationInFlight.current = true;
@@ -759,6 +768,7 @@ function HomeDashboard() {
             unreviewed={unreviewed}
             onStartDaily={() => setSession({ type: "DAILY", scene: null })}
             onResume={resumeConversation}
+            onItemsChange={updateItems}
           />
         </>
       ) : (
