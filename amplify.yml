@@ -1,0 +1,25 @@
+# Amplify Hosting のビルド設定。手順は docs/deploy-aws.md を参照。
+# API_PROXY_ORIGIN は rewrites のビルド時と src/proxy.ts の SSR 実行時の両方で使う。
+# Amplify のビルド環境変数は SSR に自動では渡らないため、.env.production に明示的に保存する。
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - nvm install 22
+        - nvm use 22
+        - corepack enable
+        # AmplifyのSSRはnode_modulesのシンボリックリンクを辿れないため、pnpmでもフラットに配置する。
+        - pnpm install --frozen-lockfile --node-linker=hoisted
+    build:
+      commands:
+        - test "${API_PROXY_ORIGIN#https://}" != "$API_PROXY_ORIGIN"
+        - printf 'API_PROXY_ORIGIN=%s\n' "$API_PROXY_ORIGIN" > .env.production
+        - pnpm build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - .next/cache/**/*

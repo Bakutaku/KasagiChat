@@ -73,7 +73,7 @@ NPC誕生（初会話 = 会話式の性格診断）
 | バックエンド | Spring Boot（Java） |
 | DB | PostgreSQL（Supabase） |
 | AI連携 | OpenAI / Anthropic API（BYOK + デモキー）、OpenAI互換エンドポイント対応 |
-| インフラ | AWS（Amplify Hosting + App Runner）+ GitHub Actions |
+| インフラ | AWS（Amplify Hosting + ECS Express Mode（Fargate 1タスク））+ GitHub Actions |
 
 ```
 ブラウザ ── Next.js（UI専任: PixiJSマップ + チャットUI）
@@ -86,7 +86,7 @@ NPC誕生（初会話 = 会話式の性格診断）
 
 - **ロジックはSpring Bootに一元化**: Next.jsにAPI Routes / BFF層は作らず「画面を描く係」に徹する。APIキー・会話状態・認証の真実をサーバ1箇所に保つ
 - **認証**: Spring Security OAuth2 Client + セッションCookie。フロントとAPIを同一オリジン配下に置き、CORS・Cookie属性の問題を構成レベルで排除
-- **デプロイ**: GitHub push → Amplify（フロント自動ビルド）/ GitHub Actions → ECR → App Runner（バックエンド）の2系統CI/CD
+- **デプロイ**: GitHub push → Amplify（フロント自動ビルド）/ GitHub Actions → ECS Express Mode（バックエンドのコンテナ）の2系統CI/CD。Amplify から ECS の ALB へは HTTPS で接続。構築手順は [docs/deploy-aws.md](docs/deploy-aws.md)
 
 ## 設計上のこだわり
 

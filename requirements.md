@@ -1,6 +1,6 @@
 # KasagiChat 要件定義
 
-- 更新日: 2026-09-14（API設計の更新、およびインフラをElastic Beanstalk単一インスタンス構成へ変更）
+- 更新日: 2026-09-23（API公開区間をHTTPS化し、バックエンドをECS Express Modeへ変更。公開URLは独自ドメインをAmplifyに設定）
 - 元資料: [idea.md](idea.md)（企画書 v2）
 - 進め方: 一項目ずつ壁打ちで合意 → 本ファイルに反映
 
@@ -399,22 +399,23 @@ AWS を採用（学習目的+初期クレジットあり。セットアップの
 
 ```
 GitHub push
- ├─▶ Amplify Hosting: Next.js を自動ビルド・配信(HTTPS/ドメイン込み)
- │      └─ rewrites proxy で /api/* を Elastic Beanstalk へ(同一オリジン維持)
- └─▶ GitHub Actions: Spring Boot をビルド
-        └─▶ Elastic Beanstalk の単一インスタンス環境へアプリケーションバージョンをデプロイ
+ ├─▶ Amplify Hosting: Next.js を自動ビルド・配信(HTTPS、独自ドメインのサブドメインが公開URL)
+ │      └─ rewrites proxy で /api/* を HTTPS の ALB へ(ブラウザからは同一オリジン)
+ └─▶ GitHub Actions: Spring Boot をビルドしてコンテナイメージを ECR へ push
+        └─▶ ECS Express Mode(ALB + Fargate 1タスク)へデプロイ
                 └─▶ Supabase (PostgreSQL・東京リージョン)
 ```
 
-- **Elastic Beanstalk は単一インスタンス環境で運用する**: ロードバランサーは配置せず、コンテスト版のアクセス規模に対して固定費を抑える
+- **バックエンドは ECS Express Mode で Fargate 1タスク（0.5 vCPU / 2GB）を運用する**: Express Mode が ALB・証明書・`on.aws` の URL を自動で用意し、Amplify からの HTTPS を終端する。タスクは ALB からのみ受信する。デプロイは新しいタスクが正常になってから切り替わり、失敗時は自動で旧バージョンに戻る（2026-09-23 に Elastic Beanstalk から変更。ALB が必要になり EB の費用面の利点がなくなったこと、証明書の手作業を減らせること、学習目的による）
+- **独自ドメインは Amplify（公開URL）にだけ設定する**: API の URL はブラウザから見えないため `on.aws` のまま使う。DNS は Xserver のため、ALIAS 不要のサブドメイン（`app.<ドメイン>`）を公開URLにする
 - **Supabase は「ただのPostgreSQL」として使う**: Supabase Auth・RLS・自動REST APIは使わない（認証はSpring側の1箇所）。接続はJDBCのみ、**セッションモードのプーラー経由**（トランザクションモードはJDBC/HikariCPのprepared statementと相性が悪い）
 - **Supabase無料プランは約1週間非アクセスでプロジェクト一時停止**する。審査期間中は Pro への一時アップグレード、または日次キープアライブ（GitHub Actions cron）で停止を防ぐ。**要件: 審査期間中にDBが停止状態にならないこと**
-- シークレット（キー暗号化鍵・OAuthクライアントシークレット等）は Elastic Beanstalk の環境プロパティで管理
+- シークレット（キー暗号化鍵・OAuthクライアントシークレット等）は SSM パラメータストア（SecureString）で管理し、タスク起動時に ECS が環境変数として渡す。秘密でない設定値は GitHub の production 環境の Variables に置き、デプロイ時にワークフローから渡す
 
 ### 運用
 
 - 日次DBバックアップ: GitHub Actions cron で pg_dump → S3（Supabase無料プランに自動バックアップがないため）+ 審査直前の手動バックアップ
-- **審査期間中はElastic Beanstalkの単一インスタンス環境を常時起動**（Spring Bootの起動待ちを審査員に見せない）
+- **審査期間中はECSのタスク1つを常時起動**（Spring Bootの起動待ちを審査員に見せない）
 - **インフラ構築は後段に回す**（開発はローカルの Docker + LM Studio を優先。序盤にAWSへ時間を割かない）
   - ただし期限を置く: **デモ動画撮影の前までにデプロイ・CI/CDを完了**させる。初デプロイで出る問題（Amplify rewrites・Cookie・Supabase接続等）を締切間際に持ち込まない
 - 障害時の最終保険: OpenAI互換接続先を運営設定で差し替え（GPUサーバ等。3-8確定）
