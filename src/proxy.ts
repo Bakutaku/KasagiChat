@@ -18,6 +18,7 @@ const NPC_BIRTH_PATH = "/onboarding/npc";
 const HOME_PATH = "/home";
 const EVENTS_PATH = "/events";
 const INVITE_PATH = "/invite";
+const SETTINGS_PATH = "/settings";
 
 /**
  * 本登録済みユーザーが開ける画面。
@@ -25,7 +26,7 @@ const INVITE_PATH = "/invite";
  * 完全一致か直下だけを許可します。前方一致だけで判定すると /homely のような
  * 別の画面まで通ってしまいます。
  */
-const REGISTERED_PATHS = [HOME_PATH, EVENTS_PATH] as const;
+const REGISTERED_PATHS = [HOME_PATH, EVENTS_PATH, SETTINGS_PATH] as const;
 
 /**
  * QRから未ログインで招待ページを開いた人を、ログイン後に戻すためのCookie。
@@ -186,5 +187,11 @@ export async function proxy(request: NextRequest) {
 // /invite/:code は含めません。未ログインでもページを開かせ、招待コードを預けてから
 // ログインへ送る必要があるためです(ここで弾くとコードが失われます)。
 export const config = {
-  matcher: ["/login", "/onboarding/:path*", "/home/:path*", "/events/:path*"],
+  matcher: [
+    "/login",
+    "/onboarding/:path*",
+    "/home/:path*",
+    "/events/:path*",
+    "/settings/:path*",
+  ],
 };
