@@ -2,9 +2,9 @@
 
 街の配色・人物表示・ホバー・会話開始前の確認UIの追加分は [town-map-interactions.md](town-map-interactions.md) を参照してください。以下は初期基盤の記録を含みます。
 
-この実装は背景と薄いHUDの基盤です。Home機能、イベントの取得・参加状態、会話、カード、保存ストアは含みません。`codex/prototype-screens` はマージせず、マップ素材・JSONの床と置物・床模様と座標変換の描画方法だけを参照しています。
+共通マップは背景・人物・選択結果を描画します。Home機能、イベントの取得・参加状態、会話、カード、保存状態は各画面とその機能モジュールが担当します。
 
-今回の指示に従い、描画はThree.js、768px未満もCanvas表示としています。`requirements.md` に残るPixiJS・PC限定の記述は更新していません。
+描画にはThree.jsを使い、768px未満でもCanvasを表示します。製品要件上はマップを含む基本体験をPCブラウザ向けとしています。
 
 ## 画面の境界
 
@@ -47,7 +47,7 @@ const characters: RuntimeMapCharacter[] = [
 - `MapSceneId`: `home-interior | hoshikawa-town | komorebi-lounge`。
 - `ImmersiveMapShell`: `mapId`、`interaction: "fixed" | "explore"`、`paused?`、`characters?`、`onSelect?: (spot: MapSpot | null) => void`、HUDの`children?`。
 - `RuntimeMapCharacter`: `id`、画像の`src`、表示名の`name`、`column`、`row`。イベント会場は `src/features/events/event-map-adapter.ts` の座席表で参加者を配置します(座席は重複させません。共通描画は同じマスのキャラクターを重ねて描くためです)。家と街は参加者を生成しません。
-- `MapSpot`: `id`、`name`、座標、`entityId`。選択は通知だけです。遷移先や会話開始の判断は画面側に置きます。街の初版は選択名をHUDに表示します。
+- `MapSpot`: `id`、`name`、座標、`entityId`。選択は通知だけです。遷移先や会話開始の判断は画面側に置きます。現在の街画面はホバーで案内を表示し、選択後の確認画面で会話開始を確定します。
 
 ## 責務と差し替え先
 
