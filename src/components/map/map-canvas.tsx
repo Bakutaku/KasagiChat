@@ -198,19 +198,31 @@ function Scene({
         const position = toWorld(entity, document.size);
         position[0] += (entity.offsetX ?? 0) / 108;
         position[1] = -(entity.offsetY ?? 0) / 76.37;
+        const spot = document.spots.find((spot) => spot.entityId === entity.id);
         return (
-          <ImageSprite
-            key={entity.id}
-            src={`/assets/map/tiles/${entity.sprite}.png`}
-            position={position}
-            width={entity.width / 76.37}
-            height={entity.height / 76.37}
-            trimTransparent={entity.trimTransparent}
-            order={1000 + Math.round((entity.column + entity.row) * 100)}
-            spotId={
-              document.spots.find((spot) => spot.entityId === entity.id)?.id
-            }
-          />
+          <group key={entity.id}>
+            <ImageSprite
+              src={`/assets/map/tiles/${entity.sprite}.png`}
+              position={position}
+              width={entity.width / 76.37}
+              height={entity.height / 76.37}
+              trimTransparent={entity.trimTransparent}
+              order={1000 + Math.round((entity.column + entity.row) * 100)}
+              spotId={spot?.id}
+            />
+            {spot?.showNameLabel && (
+              <Html
+                position={[position[0], position[1] + entity.height / 76.37 + 0.3, position[2]]}
+                center
+                style={{ pointerEvents: "none" }}
+                zIndexRange={[5, 1]}
+              >
+                <span className="badge max-w-32 truncate bg-base-100/90 text-xs">
+                  {spot.name}
+                </span>
+              </Html>
+            )}
+          </group>
         );
       })}
       {characters

@@ -192,12 +192,15 @@ export function parseMapDocument(
     const entityId = id(spot.entityId);
     if (spotIds.has(key) || !entityIds.has(entityId))
       fail("スポットのIDまたは置物の参照が不正です。");
+    if (spot.showNameLabel !== undefined && typeof spot.showNameLabel !== "boolean")
+      fail("スポットの名札設定が不正です。");
     spotIds.add(key);
     return {
       id: key,
       name: text(spot.name, 80),
       entityId,
       ...point(spot, size),
+      ...(spot.showNameLabel === undefined ? {} : { showNameLabel: spot.showNameLabel as boolean }),
     };
   });
   const anchorIds = new Set<string>();

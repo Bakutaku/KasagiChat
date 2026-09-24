@@ -294,35 +294,40 @@
       "name": "ロビー",
       "column": 2,
       "row": 1,
-      "entityId": "lobby"
+      "entityId": "lobby",
+      "showNameLabel": true
     },
     {
       "id": "office",
       "name": "オフィス",
       "column": 9,
       "row": 1,
-      "entityId": "office"
+      "entityId": "office",
+      "showNameLabel": true
     },
     {
       "id": "cafe",
       "name": "カフェ",
       "column": 1,
       "row": 8,
-      "entityId": "cafe"
+      "entityId": "cafe",
+      "showNameLabel": true
     },
     {
       "id": "home",
       "name": "家",
       "column": 10,
       "row": 8,
-      "entityId": "home"
+      "entityId": "home",
+      "showNameLabel": true
     },
     {
       "id": "plaza",
       "name": "広場",
       "column": 6,
       "row": 8,
-      "entityId": "fountain"
+      "entityId": "fountain",
+      "showNameLabel": true
     }
   ]
 }

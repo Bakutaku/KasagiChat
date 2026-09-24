@@ -48,3 +48,12 @@ test("家と広場は会話シーンを持たず画面へ遷移し、未知の�
   assert.ok(townVisit("plaza").actionLabel);
   assert.equal(townVisit("unknown"), null);
 });
+
+test("街のすべてのスポットに常時表示の名札を設定し、不正な設定を拒否する", () => {
+  const map = parse(readTown());
+  assert.deepEqual(map.spots.map((spot) => spot.id).sort(), ["cafe", "home", "lobby", "office", "plaza"]);
+  assert.ok(map.spots.every((spot) => spot.showNameLabel === true));
+  const invalid = readTown();
+  invalid.spots.find((spot) => spot.id === "home").showNameLabel = "true";
+  assert.throws(() => parse(invalid));
+});

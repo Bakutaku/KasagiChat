@@ -54,7 +54,13 @@ export type MapFloor = MapPoint & {
   spawnAllowed: boolean;
 };
 /** スポットには遷移先や会話ロジックを持たせず、画面側で選択結果を解釈します。 */
-export type MapSpot = MapPoint & { id: string; name: string; entityId: string };
+export type MapSpot = MapPoint & {
+  id: string;
+  name: string;
+  entityId: string;
+  /** 街の建物など、地図上で常時名前を示したい場所だけ指定します。 */
+  showNameLabel?: boolean;
+};
 /** 静的な配置地点。所有者・取得状態・アイテム名は含めません。寸法は床1マス単位。 */
 export type MapPlacementAnchor = MapPoint & {
   id: string;
