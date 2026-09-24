@@ -32,6 +32,9 @@
   cursor: default;
 }
 .anchor:disabled { cursor: wait; }
+@media (pointer: coarse) {
+  .anchor { width: 2.5rem; height: 2.5rem; }
+}
 @media (prefers-reduced-motion: reduce) {
   .anchor { transition: none; }
 }

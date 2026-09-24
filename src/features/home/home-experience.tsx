@@ -7,7 +7,6 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
   type ReactNode,
   type RefObject,
 } from "react";
@@ -26,7 +25,6 @@ import {
   LuTrophy,
 } from "react-icons/lu";
 import ErrorAlert from "@/components/feedback/error-alert";
-import { NavigationHeader } from "@/components/layout/navigation-header";
 import { ImmersiveMapShell } from "@/components/map";
 import { getErrorMessage } from "@/lib/api/errors";
 import { isAbortError } from "@/lib/api/client";
@@ -43,14 +41,13 @@ import type {
   HomeItem,
   HomeItemKind,
   HomeResponse,
+  HomeSlot,
   HomeSlotId,
 } from "./types";
 import { HomeItemArtwork } from "./home-item-artwork";
 import { availableHomeSlots, homeAnchorId, homeMapObjects } from "./home-map-adapter";
 import ProfileNotebook from "./profile-notebook";
 import styles from "./home-experience.module.css";
-
-const DESKTOP_MEDIA_QUERY = "(min-width: 768px)";
 
 const HOME_ERROR_MESSAGES = {
   HOME_SLOT_OCCUPIED:
@@ -66,20 +63,6 @@ const HOME_ERROR_MESSAGES = {
   INVALID_REQUEST_BODY: "配置内容を確認して、もう一度お試しください。",
 } as const;
 
-
-function subscribeToDesktop(change: () => void) {
-  const media = window.matchMedia(DESKTOP_MEDIA_QUERY);
-  media.addEventListener("change", change);
-  return () => media.removeEventListener("change", change);
-}
-
-function getDesktopSnapshot() {
-  return window.matchMedia(DESKTOP_MEDIA_QUERY).matches;
-}
-
-function getServerDesktopSnapshot() {
-  return false;
-}
 
 function slotLabel(slotId: HomeSlotId) {
   const number = slotId.split("_")[1];
@@ -181,7 +164,7 @@ function NpcPanel({ home }: { home: HomeResponse }) {
               src={presetImagePath(npc.presetId)}
               alt={`${npc.name}の姿`}
               fill
-              sizes="(min-width: 768px) 20vw, 0px"
+              sizes="(min-width: 1100px) 20vw, (min-width: 768px) 0px, 144px"
               className={styles.portrait}
               onError={() => setPortraitFailed(true)}
               priority
@@ -287,13 +270,17 @@ function Inventory({
 
 function SelectedItemPanel({
   item,
+  availableSlots,
   saving,
   error,
+  onPlace,
   onStore,
 }: {
   item: HomeItem | null;
+  availableSlots: HomeSlot[];
   saving: boolean;
   error: string | null;
+  onPlace: (slotId: HomeSlotId) => void;
   onStore: () => void;
 }) {
   if (!item) {
@@ -344,6 +331,26 @@ function SelectedItemPanel({
           ? "強調された空き場所を選ぶと配置を変更できます。"
           : "部屋で強調された空き場所を選ぶと配置できます。"}
       </p>
+      <div className={styles.mobileSlotPicker}>
+        <p className="text-xs font-semibold">空いている配置場所</p>
+        {availableSlots.length > 0 ? (
+          <div className={styles.mobileSlotList}>
+            {availableSlots.map((slot) => (
+              <button
+                key={slot.slotId}
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={() => onPlace(slot.slotId)}
+                disabled={saving}
+              >
+                {slotLabel(slot.slotId)}に配置
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-2 text-xs text-base-content/65">この種類の空き場所はありません。</p>
+        )}
+      </div>
       {item.slotId && (
         <button
           type="button"
@@ -463,15 +470,17 @@ function UnreviewedCard({
 }
 
 function ActionPanel({
-  editing, items, selectedItem, saving, mutationError, onSelect, onStore, selectionRef,
+  editing, items, selectedItem, availableSlots, saving, mutationError, onSelect, onPlace, onStore, selectionRef,
   dailyQuestion, unreviewed, onStartDaily, onResume, onItemsChange,
 }: {
   editing: boolean;
   items: HomeItem[];
   selectedItem: HomeItem | null;
+  availableSlots: HomeSlot[];
   saving: boolean;
   mutationError: string | null;
   onSelect: (topicId: number) => void;
+  onPlace: (slotId: HomeSlotId) => void;
   onStore: () => void;
   selectionRef: RefObject<HTMLDivElement | null>;
   dailyQuestion: string | null;
@@ -489,7 +498,7 @@ function ActionPanel({
             <p className="text-xs text-base-content/65">アイテムを選び、部屋の＋を押して配置します。変更はその都度保存されます。</p>
             <Inventory items={items} selectedItem={selectedItem} saving={saving} onSelect={onSelect} />
             <div ref={selectionRef} tabIndex={-1} aria-label="選択中のアイテム" className={styles.selectionPanel}>
-              <SelectedItemPanel item={selectedItem} saving={saving} error={mutationError} onStore={onStore} />
+              <SelectedItemPanel item={selectedItem} availableSlots={availableSlots} saving={saving} error={mutationError} onPlace={onPlace} onStore={onStore} />
             </div>
           </div>
         ) : (
@@ -702,6 +711,7 @@ function HomeDashboard() {
     <ImmersiveMapShell
       mapId="home-interior"
       interaction="fixed"
+      shellClassName={styles.homeShell}
       objects={objects}
       objectEditing={editing && home ? {
         anchorIds: home.slots.map((slot) => homeAnchorId(slot.slotId)),
@@ -757,9 +767,11 @@ function HomeDashboard() {
           </section>
           <ActionPanel
             selectedItem={selectedItem}
+            availableSlots={availableSlots}
             editing={editing}
             items={home.items}
             onSelect={selectItem}
+            onPlace={(slotId) => void placeItem(slotId)}
             selectionRef={selectionRef}
             saving={saving}
             mutationError={mutationError}
@@ -815,36 +827,6 @@ function HomeDashboard() {
   );
 }
 
-function MobileFallback() {
-  return (
-    <div className="min-h-dvh bg-base-200">
-      <NavigationHeader />
-      <main className="mx-auto flex min-h-[calc(100dvh-4rem)] max-w-lg items-center p-6">
-        <section className="card w-full border border-base-300 bg-base-100 shadow-xl">
-          <div className="card-body items-center text-center">
-            <LuHouse className="text-primary" size={42} aria-hidden="true" />
-            <h1 className="card-title">家はPCでお楽しみください</h1>
-            <p className="text-sm leading-relaxed text-base-content/70">
-              家のマップとアイテム配置は、幅768px以上のPCブラウザに対応しています。
-            </p>
-            <div className="card-actions mt-2">
-              <Link href="/" className="btn btn-outline btn-sm">
-                トップへ戻る
-              </Link>
-            </div>
-          </div>
-        </section>
-      </main>
-    </div>
-  );
-}
-
 export function HomeExperience() {
-  const desktop = useSyncExternalStore(
-    subscribeToDesktop,
-    getDesktopSnapshot,
-    getServerDesktopSnapshot,
-  );
-
-  return desktop ? <HomeDashboard /> : <MobileFallback />;
+  return <HomeDashboard />;
 }

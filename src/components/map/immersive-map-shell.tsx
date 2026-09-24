@@ -42,6 +42,7 @@ export type ImmersiveMapShellProps = {
   /** 家など、画面固有の構成で表示領域だけを調整するための差し込み口。 */
   canvasClassName?: string;
   hudClassName?: string;
+  shellClassName?: string;
 };
 
 function MapLoading() {
@@ -127,13 +128,14 @@ export function ImmersiveMapShell({
   paused = false,
   canvasClassName = "",
   hudClassName = "",
+  shellClassName = "",
   ...props
 }: ImmersiveMapShellProps) {
   const [attempt, setAttempt] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const stopped = paused || menuOpen;
   return (
-    <main className={styles.shell}>
+    <main className={`${styles.shell} ${shellClassName}`}>
       <NavigationHeader className={styles.header} onMenuToggle={setMenuOpen} />
       <h1 className="sr-only">
         {isMapSceneId(props.mapId) ? mapRegistry[props.mapId].label : "マップ"}
