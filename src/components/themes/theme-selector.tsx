@@ -6,10 +6,6 @@ import { useTheme } from "next-themes";
 const themes = [
   { value: "system", label: "System" },
   { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-  { value: "cupcake", label: "Cupcake" },
-  { value: "emerald", label: "Emerald" },
-  { value: "corporate", label: "Corporate" },
   { value: "night", label: "Night" },
 ];
 

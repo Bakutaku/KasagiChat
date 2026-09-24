@@ -5,8 +5,7 @@
  * --default と --prefersdark は、data-theme が未指定のときの初期値です。
  */
 @plugin "daisyui" {
-  themes: light --default, dark --prefersdark, cupcake, emerald, corporate,
-    night;
+  themes: light --default, night --prefersdark;
 }
 
 :root,

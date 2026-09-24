@@ -2,14 +2,7 @@
 
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 
-const themes = [
-  "light",
-  "dark",
-  "cupcake",
-  "emerald",
-  "corporate",
-  "night",
-];
+const themes = ["light", "night"];
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
@@ -19,6 +12,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       enableSystem
       disableTransitionOnChange
       themes={themes}
+      value={{ light: "light", night: "night", dark: "night" }}
     >
       {children}
     </NextThemesProvider>
