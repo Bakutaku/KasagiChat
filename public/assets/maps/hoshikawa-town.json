@@ -105,16 +105,6 @@
       "offsetY": -7
     },
     {
-      "id": "bridge",
-      "sprite": "bridge",
-      "column": 5.5,
-      "row": 4.5,
-      "width": 154,
-      "height": 103,
-      "trimTransparent": true,
-      "offsetY": 3
-    },
-    {
       "id": "fountain",
       "sprite": "fountain",
       "column": 6,
