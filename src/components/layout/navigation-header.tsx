@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { IconType } from "react-icons";
-import { LuCalendarDays, LuHouse, LuMap, LuMenu } from "react-icons/lu";
+import { LuCalendarDays, LuHouse, LuMail, LuMap, LuMenu } from "react-icons/lu";
 
 import KasagiLogo from "@/components/icon/KasagiLogo";
 import { UserMenu } from "./user-menu";
@@ -13,6 +13,7 @@ const navItems: { href: string; label: string; icon: IconType }[] = [
   { href: "/home", label: "家", icon: LuHouse },
   { href: "/map", label: "街", icon: LuMap },
   { href: "/events", label: "イベント", icon: LuCalendarDays },
+  { href: "/cards", label: "カード", icon: LuMail },
 ];
 
 function isActive(pathname: string, href: string) {

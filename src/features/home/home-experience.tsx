@@ -17,6 +17,7 @@ import {
   LuImageOff,
   LuInfo,
   LuMap,
+  LuMail,
   LuMessageCircle,
   LuPencil,
   LuCheck,
@@ -514,6 +515,18 @@ function ActionPanel({
               disabled={saving}
               onResume={onResume}
             />
+            <Link
+              href="/cards"
+              className="flex items-start gap-3 rounded-box border border-base-300 bg-base-200/55 p-3 hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              <LuMail className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
+              <span className="min-w-0">
+                <span className="block text-sm font-bold">出会いカードを見る</span>
+                <span className="mt-1 block text-xs leading-relaxed text-base-content/65">
+                  イベントで届いたカードをいつでも確認できます。
+                </span>
+              </span>
+            </Link>
             <UnavailableFeature icon={<LuTrophy />} title="成長記録" description="分身の成長を読み返す機能は準備中です。" />
           </>
         )}
