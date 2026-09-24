@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { LuMailOpen, LuMailX, LuSparkles } from "react-icons/lu";
+import { LuArrowUpRight, LuMail, LuMailOpen, LuSparkles } from "react-icons/lu";
 
 import ErrorAlert from "@/components/feedback/error-alert";
 import { cardApi } from "@/features/cards/api";
@@ -17,6 +17,7 @@ import { getErrorMessage } from "@/lib/api/errors";
 export function CardsList({ eventId }: { eventId: string | null }) {
   const [cards, setCards] = useState<Card[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const unopenedCount = cards?.filter((card) => !card.opened).length ?? 0;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -44,15 +45,39 @@ export function CardsList({ eventId }: { eventId: string | null }) {
   }, [eventId]);
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
-      <div>
-        <h1 className="text-2xl font-bold">出会いカード</h1>
-        <p className="mt-1 text-sm opacity-70">
-          {eventId
-            ? "このイベントで届いたカードです。"
-            : "これまでに届いたカードです。新しい順に並んでいます。"}
-        </p>
-      </div>
+    <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
+      <header className="relative overflow-hidden rounded-3xl border border-base-300 bg-linear-to-br from-base-100 via-base-100 to-primary/10 px-5 py-6 shadow-sm sm:px-8">
+        <div
+          className="pointer-events-none absolute -top-12 -right-12 size-40 rounded-full border-[20px] border-primary/10"
+          aria-hidden="true"
+        />
+        <div className="relative">
+          <p className="flex items-center gap-2 text-xs font-bold tracking-widest text-primary">
+            <LuMail aria-hidden="true" />
+            届いた手紙
+          </p>
+          <h1 className="mt-2 text-2xl font-bold sm:text-3xl">出会いカード</h1>
+          <p className="mt-2 text-sm text-base-content/70">
+            {eventId
+              ? "このイベントで届いたカードです。"
+              : "これまでに届いたカードです。新しい順に並んでいます。"}
+          </p>
+          {cards !== null && cards.length > 0 && (
+            <div className="mt-5 flex flex-wrap gap-2">
+              <span className="badge badge-soft badge-primary gap-1.5">
+                <LuMail aria-hidden="true" />
+                {cards.length}枚のカード
+              </span>
+              {unopenedCount > 0 && (
+                <span className="badge badge-outline gap-1.5">
+                  <LuMail aria-hidden="true" />
+                  未開封 {unopenedCount}枚
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      </header>
 
       {loadError && <ErrorAlert message={loadError} className="mt-4" />}
 
@@ -64,7 +89,11 @@ export function CardsList({ eventId }: { eventId: string | null }) {
       )}
 
       {cards !== null && cards.length === 0 && !loadError && (
-        <div className="mt-6 rounded-box border border-base-300 bg-base-100 p-8 text-center">
+        <div className="mt-6 rounded-2xl border border-base-300 bg-base-100 p-8 text-center shadow-sm">
+          <LuMail
+            className="mx-auto mb-3 size-9 text-primary/60"
+            aria-hidden="true"
+          />
           <p className="font-medium">まだカードは届いていません。</p>
           <p className="mt-1 text-sm opacity-70">
             イベントに参加すると、共通点のある相手からカードが届きます。
@@ -72,25 +101,29 @@ export function CardsList({ eventId }: { eventId: string | null }) {
         </div>
       )}
 
-      <ul className="mt-6 flex flex-col gap-3">
+      <ul className="mt-6 flex flex-col gap-4">
         {(cards ?? []).map((card) => (
           <li key={card.id}>
             <Link
               href={`/cards/${card.id}`}
-              className="card card-side border border-base-300 bg-base-100 transition-colors hover:border-primary"
+              className={`card card-side group overflow-hidden border bg-base-100 shadow-sm hover:border-primary hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${card.opened ? "border-base-300" : "border-primary/40"}`}
             >
-              <figure className="w-24 shrink-0 bg-base-200 p-2 sm:w-28">
+              <figure
+                className={`flex w-24 shrink-0 items-center justify-center border-r p-2 sm:w-32 sm:p-3 ${card.opened ? "border-base-300 bg-base-200" : "border-primary/10 bg-primary/10"}`}
+              >
                 <Image
                   src={presetImagePath(card.partnerPresetId)}
                   alt=""
                   width={96}
                   height={96}
-                  className="h-full w-full object-contain"
+                  className="max-h-28 w-full object-contain"
                 />
               </figure>
-              <div className="card-body gap-2 py-3">
+              <div className="card-body min-w-0 gap-2 px-4 py-4 sm:px-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="card-title text-base">{card.partnerName}</h2>
+                  <h2 className="card-title min-w-0 text-base sm:text-lg">
+                    {card.partnerName}
+                  </h2>
                   {card.opened ? (
                     <span className="badge badge-ghost badge-sm gap-1">
                       <LuMailOpen aria-hidden="true" />
@@ -98,7 +131,7 @@ export function CardsList({ eventId }: { eventId: string | null }) {
                     </span>
                   ) : (
                     <span className="badge badge-primary badge-sm gap-1">
-                      <LuMailX aria-hidden="true" />
+                      <LuMail aria-hidden="true" />
                       未開封
                     </span>
                   )}
@@ -109,7 +142,10 @@ export function CardsList({ eventId }: { eventId: string | null }) {
                 <div className="flex flex-wrap gap-1">
                   {(card.commonTags ?? []).length > 0 ? (
                     (card.commonTags ?? []).map((tag) => (
-                      <span key={tag} className="badge badge-outline badge-sm gap-1">
+                      <span
+                        key={tag}
+                        className="badge badge-outline badge-sm gap-1"
+                      >
                         <LuSparkles aria-hidden="true" />
                         {tag}
                       </span>
@@ -118,6 +154,10 @@ export function CardsList({ eventId }: { eventId: string | null }) {
                     <span className="text-xs opacity-50">共通点なし</span>
                   )}
                 </div>
+                <span className="mt-1 flex items-center gap-1 self-end text-xs font-bold text-primary">
+                  カードを見る
+                  <LuArrowUpRight aria-hidden="true" />
+                </span>
               </div>
             </Link>
           </li>
