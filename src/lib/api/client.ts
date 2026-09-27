@@ -7,8 +7,10 @@
  * 方針:
  * - 変更系(GET/HEAD以外)は必ず `GET /api/auth/csrf` でCookieを発行させてから送る。
  * - 失敗レスポンスは Problem Details かどうかに関わらず {@link ApiError} へ統一する。
- * - トークンのキャッシュや403時の自動リトライは行わない(サーバー仕様の確認が必要なため)。
+ * - 変更系の403は認証状態を確認するが、変更リクエストを自動再送しない。
  */
+
+import { hasExpiredSession, notifySessionExpired } from "./session";
 
 // Spring Security のCSRF対策。Cookieの値を対応するヘッダーへ載せ返す。
 const CSRF_COOKIE_NAME = "XSRF-TOKEN";
@@ -114,6 +116,7 @@ export async function getCsrfToken(signal?: AbortSignal) {
   });
 
   if (!response.ok) {
+    if (response.status === 401) notifySessionExpired();
     throw await getApiError(response);
   }
 
@@ -183,6 +186,20 @@ export async function apiFetch<T>(
   });
 
   if (!response.ok) {
+    if (response.status === 401) notifySessionExpired();
+    // CSRF検証は認証より先に走るため、期限切れの変更系が403になる場合がある。
+    if (response.status === 403 && !isSafeMethod(method)) {
+      let expired = false;
+      try {
+        expired = await hasExpiredSession(signal);
+      } catch {
+        // 確認不能なら元の403を維持する。
+      }
+      if (expired) {
+        notifySessionExpired();
+        throw new ApiError(401);
+      }
+    }
     throw await getApiError(response);
   }
 

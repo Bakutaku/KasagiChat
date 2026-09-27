@@ -8,7 +8,12 @@ export const metadata: Metadata = {
   description: "KasagiChatにログインして、分身との暮らしを始めましょう。",
 };
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ reason?: string | string[] }>;
+}) {
+  const expired = (await searchParams).reason === "session-expired";
 
   return (
     <section className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-base-200 px-5 py-10 text-base-content">
@@ -36,6 +41,12 @@ export default async function LoginPage() {
               初めての方もこちらから登録できます。
             </p>
           </div>
+
+          {expired && (
+            <p role="status" className="alert alert-info mt-6 text-sm">
+              ログインの有効期限が切れました。もう一度ログインしてください。
+            </p>
+          )}
 
           <div className="mt-7 grid gap-3">
             {/* Google */}
